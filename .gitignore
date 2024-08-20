@@ -1,0 +1,32 @@
+# Gradle
+.gradle
+/.gradle/
+build/
+!/scripts/**/build
+local.properties
+/reports/
+
+# Gradle Profiler
+profile-out*
+gradle-user-home
+
+# IntelliJ IDEA
+.idea/
+!.idea/vcs.xml
+!.idea/runConfigurations/
+!.idea/scopes/
+*.iml
+*.ipl
+*.ipr
+*.iws
+classes/
+idea-classes/
+coverage-error.log
+.shelf/
+
+# kotlin
+.kotlin
+
+# Steve Jobs
+.DS_Store
+

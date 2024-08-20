@@ -1,0 +1,76 @@
+# Detekt configuration tweaks. These are documented at
+#   https://detekt.github.io/detekt/configurations.html
+#   https://detekt.github.io/detekt/comments.html
+# Also helpful are the Detekt default settings at
+#   https://github.com/detekt/detekt/blob/main/detekt-core/src/main/resources/default-detekt-config.yml
+style:
+  DataClassShouldBeImmutable:
+    active: true
+  MagicNumber:
+    # Magic numbers in enums should be ignored
+    ignoreEnums: true
+    # The next two parameters are recommended for Compose: https://detekt.dev/docs/introduction/compose/
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+  UnusedPrivateMember:
+    # Recommended for Compose: https://detekt.dev/docs/introduction/compose/
+    ignoreAnnotated: ['Preview']
+  MaxLineLength:
+    active: false
+comments:
+  DeprecatedBlockTag:
+    active: true
+  EndOfSentenceFormat:
+    active: true
+  UndocumentedPublicClass:
+    active: true
+    excludes: [
+      '**/src/*Test/**/*.kt',
+      '**/src/test/**/*.kt',
+    ]
+  UndocumentedPublicFunction:
+    active: true
+    excludes: [
+      '**/src/*Test/**/*.kt',
+      '**/src/test/**/*.kt',
+    ]
+  UndocumentedPublicProperty:
+    active: true
+    excludes: [
+      '**/src/*Test/**/*.kt',
+      '**/src/test/**/*.kt',
+    ]
+complexity:
+  LongParameterList:
+    constructorThreshold: 12
+    ignoreAnnotated: [
+      ‘Inject’,
+    ]
+    # The next two parameters are recommended for Compose: https://detekt.dev/docs/introduction/compose/
+    functionThreshold: 12
+    ignoreDefaultParameters: true
+  TooManyFunctions:
+    excludes: [
+      '**/src/commonTest/**/*.kt',
+      '**/src/test/**/*.kt',
+    ]
+    ignoreDeprecated: true
+    ignorePrivate: true
+    ignoreOverridden: true
+  LargeClass:
+    excludes: [
+      '**/src/commonTest/**/*.kt',
+      '**/src/test/**/*.kt',
+    ]
+  LongMethod:
+    excludes: [
+      '**/src/commonTest/**/*.kt',
+      '**/src/test/**/*.kt',
+    ]
+naming:
+  InvalidPackageDeclaration:
+    active: true
+  FunctionNaming:
+    # The next two parameters are recommended for Compose: https://detekt.dev/docs/introduction/compose/
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ignoreAnnotated: ['Composable']

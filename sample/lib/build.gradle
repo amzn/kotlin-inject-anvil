@@ -1,0 +1,31 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
+}
+
+kotlin {
+    androidTarget()
+    iosSimulatorArm64()
+
+    applyDefaultHierarchyTemplate()
+}
+
+android {
+    namespace 'com.amazon.lastmile.kotlin.inject.anvil.sample.lib'
+}
+
+dependencies {
+    kspCommonMainMetadata libs.kotlin.inject.ksp
+    kspAndroid libs.kotlin.inject.ksp
+    kspIosSimulatorArm64 libs.kotlin.inject.ksp
+
+    kspCommonMainMetadata project(':compiler')
+    kspAndroid project(':compiler')
+    kspIosSimulatorArm64 project(':compiler')
+
+    commonMainImplementation project(':runtime')
+    commonMainImplementation libs.kotlin.inject.runtime
+}

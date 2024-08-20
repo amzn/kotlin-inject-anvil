@@ -1,0 +1,55 @@
+[versions]
+agp = "8.2.2"
+android-compileSdk = "34"
+android-minSdk = "21"
+assertk = "0.28.1"
+auto-service = "1.1.1"
+auto-service-ksp = "1.2.0"
+detekt = "1.23.6"
+junit-jupiter = "5.10.3"
+kotlin = "2.0.0"
+kotlin-compile-testing = "0.5.1"
+# This is a snapshot build with the latest fixes.
+kotlin-inject = "0.7.2-20240710.214910-9"
+kotlin-poet = "1.18.1"
+kotlinx-binaryCompatibilityValidator = "0.16.2"
+ksp = "2.0.0-1.0.23"
+ktlint-binary = "1.2.1"
+ktlint-gradle = "12.1.1"
+maven-publish = "0.29.0"
+
+[libraries]
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
+auto-service-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "auto-service" }
+auto-service-ksp = { module = "dev.zacsweers.autoservice:auto-service-ksp", version.ref = "auto-service-ksp" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+junit-jupiter-bom = { module = "org.junit:junit-bom", version.ref = "junit-jupiter" }
+junit-jupiter-core = { module = "org.junit.jupiter:junit-jupiter" }
+junit-jupiter-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+kotlin-compile-testing-core = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlin-compile-testing" }
+kotlin-compile-testing-ksp = { module = "dev.zacsweers.kctfork:ksp", version.ref = "kotlin-compile-testing" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-gradle-plugin-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
+kotlin-inject-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlin-inject" }
+kotlin-inject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlin-inject" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinx-binaryCompatibilityValidator = { module = "org.jetbrains.kotlinx:binary-compatibility-validator", version.ref = "kotlinx-binaryCompatibilityValidator"}
+kotlin-poet = { module = "com.squareup:kotlinpoet", version.ref = "kotlin-poet"}
+kotlin-poet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlin-poet"}
+ksp-gradle-plugin = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+ksp = { module = "com.google.devtools.ksp:symbol-processing", version.ref = "ksp" }
+ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
+maven-publish-gradle-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "maven-publish" }
+
+[plugins]
+android-app = { id = "com.android.application" }
+android-library = { id = "com.android.library" }
+detekt = { id = "io.gitlab.arturbosch.detekt" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm" }
+kotlinx-binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform" }
+ksp = { id = "com.google.devtools.ksp" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint" }
+maven-publish = { id = "com.vanniktech.maven.publish" }
