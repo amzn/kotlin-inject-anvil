@@ -1,0 +1,46 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <kotlin-inject-anvil:runtime>
+open annotation class com.amazon.lastmile.kotlin.inject.anvil.internal/Origin : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil.internal/Origin|null[0]
+    constructor <init>(kotlin.reflect/KClass<*>) // com.amazon.lastmile.kotlin.inject.anvil.internal/Origin.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
+
+    final val value // com.amazon.lastmile.kotlin.inject.anvil.internal/Origin.value|{}value[0]
+        final fun <get-value>(): kotlin.reflect/KClass<*> // com.amazon.lastmile.kotlin.inject.anvil.internal/Origin.value.<get-value>|<get-value>(){}[0]
+}
+
+open annotation class com.amazon.lastmile.kotlin.inject.anvil.internal/Subcomponent : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil.internal/Subcomponent|null[0]
+    constructor <init>() // com.amazon.lastmile.kotlin.inject.anvil.internal/Subcomponent.<init>|<init>(){}[0]
+}
+
+open annotation class com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding|null[0]
+    constructor <init>(kotlin.reflect/KClass<out kotlin/Annotation> = ..., kotlin.reflect/KClass<*> = ...) // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.<init>|<init>(kotlin.reflect.KClass<out|kotlin.Annotation>;kotlin.reflect.KClass<*>){}[0]
+
+    final val boundType // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.boundType|{}boundType[0]
+        final fun <get-boundType>(): kotlin.reflect/KClass<*> // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.boundType.<get-boundType>|<get-boundType>(){}[0]
+    final val scope // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.scope|{}scope[0]
+        final fun <get-scope>(): kotlin.reflect/KClass<out kotlin/Annotation> // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.scope.<get-scope>|<get-scope>(){}[0]
+}
+
+open annotation class com.amazon.lastmile.kotlin.inject.anvil/ContributesSubcomponent : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil/ContributesSubcomponent|null[0]
+    constructor <init>() // com.amazon.lastmile.kotlin.inject.anvil/ContributesSubcomponent.<init>|<init>(){}[0]
+
+    open annotation class Factory : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil/ContributesSubcomponent.Factory|null[0]
+        constructor <init>() // com.amazon.lastmile.kotlin.inject.anvil/ContributesSubcomponent.Factory.<init>|<init>(){}[0]
+    }
+}
+
+open annotation class com.amazon.lastmile.kotlin.inject.anvil/ContributesTo : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil/ContributesTo|null[0]
+    constructor <init>() // com.amazon.lastmile.kotlin.inject.anvil/ContributesTo.<init>|<init>(){}[0]
+}
+
+open annotation class com.amazon.lastmile.kotlin.inject.anvil/MergeComponent : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent|null[0]
+    constructor <init>(kotlin/Array<kotlin.reflect/KClass<*>> = ...) // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent.<init>|<init>(kotlin.Array<kotlin.reflect.KClass<*>>){}[0]
+
+    final val exclude // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent.exclude|{}exclude[0]
+        final fun <get-exclude>(): kotlin/Array<kotlin.reflect/KClass<*>> // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent.exclude.<get-exclude>|<get-exclude>(){}[0]
+}
