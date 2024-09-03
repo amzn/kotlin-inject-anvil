@@ -17,33 +17,53 @@ import com.google.devtools.ksp.processing.SymbolProcessorProvider
 @Suppress("unused")
 class KotlinInjectExtensionSymbolProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-        return CompositeSymbolProcessor(
-            ContributesToProcessor(
-                codeGenerator = environment.codeGenerator,
-                logger = environment.logger,
-            ),
-            ContributesBindingProcessor(
-                codeGenerator = environment.codeGenerator,
-                logger = environment.logger,
-            ),
-            ContributesSubcomponentFactoryProcessor(
-                codeGenerator = environment.codeGenerator,
-                logger = environment.logger,
-            ),
-            MergeComponentProcessor(
-                codeGenerator = environment.codeGenerator,
-                logger = environment.logger,
-                contributesSubcomponentProcessor = ContributesSubcomponentProcessor(
+        fun MutableSet<SymbolProcessor>.addIfEnabled(symbolProcessor: SymbolProcessor) {
+            val disabled = environment.options[symbolProcessor::class.qualifiedName] == "disabled"
+            if (!disabled) {
+                add(symbolProcessor)
+            } else {
+                environment.logger
+                    .info("Disabled kotlin-inject-anvil processor ${symbolProcessor::class}")
+            }
+        }
+
+        val symbolProcessors = buildSet {
+            addIfEnabled(
+                ContributesToProcessor(
                     codeGenerator = environment.codeGenerator,
                     logger = environment.logger,
                 ),
-                contributingAnnotations = listOf(
-                    ContributesTo::class,
-                    ContributesBinding::class,
-                    ContributesSubcomponent::class,
-                    ContributesSubcomponent.Factory::class,
+            )
+            addIfEnabled(
+                ContributesBindingProcessor(
+                    codeGenerator = environment.codeGenerator,
+                    logger = environment.logger,
                 ),
-            ),
-        )
+            )
+            addIfEnabled(
+                ContributesSubcomponentFactoryProcessor(
+                    codeGenerator = environment.codeGenerator,
+                    logger = environment.logger,
+                ),
+            )
+            addIfEnabled(
+                MergeComponentProcessor(
+                    codeGenerator = environment.codeGenerator,
+                    logger = environment.logger,
+                    contributesSubcomponentProcessor = ContributesSubcomponentProcessor(
+                        codeGenerator = environment.codeGenerator,
+                        logger = environment.logger,
+                    ),
+                    contributingAnnotations = listOf(
+                        ContributesTo::class,
+                        ContributesBinding::class,
+                        ContributesSubcomponent::class,
+                        ContributesSubcomponent.Factory::class,
+                    ),
+                ),
+            )
+        }
+
+        return CompositeSymbolProcessor(symbolProcessors)
     }
 }
