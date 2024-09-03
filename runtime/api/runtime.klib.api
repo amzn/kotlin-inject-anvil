@@ -18,7 +18,7 @@ open annotation class com.amazon.lastmile.kotlin.inject.anvil.internal/Subcompon
 }
 
 open annotation class com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding|null[0]
-    constructor <init>(kotlin.reflect/KClass<out kotlin/Annotation> = ..., kotlin.reflect/KClass<*> = ...) // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.<init>|<init>(kotlin.reflect.KClass<out|kotlin.Annotation>;kotlin.reflect.KClass<*>){}[0]
+    constructor <init>(kotlin.reflect/KClass<out kotlin/Annotation> =..., kotlin.reflect/KClass<*> =...) // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.<init>|<init>(kotlin.reflect.KClass<out|kotlin.Annotation>;kotlin.reflect.KClass<*>){}[0]
 
     final val boundType // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.boundType|{}boundType[0]
         final fun <get-boundType>(): kotlin.reflect/KClass<*> // com.amazon.lastmile.kotlin.inject.anvil/ContributesBinding.boundType.<get-boundType>|<get-boundType>(){}[0]
@@ -39,7 +39,7 @@ open annotation class com.amazon.lastmile.kotlin.inject.anvil/ContributesTo : ko
 }
 
 open annotation class com.amazon.lastmile.kotlin.inject.anvil/MergeComponent : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent|null[0]
-    constructor <init>(kotlin/Array<kotlin.reflect/KClass<*>> = ...) // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent.<init>|<init>(kotlin.Array<kotlin.reflect.KClass<*>>){}[0]
+    constructor <init>(kotlin/Array<kotlin.reflect/KClass<*>> =...) // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent.<init>|<init>(kotlin.Array<kotlin.reflect.KClass<*>>){}[0]
 
     final val exclude // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent.exclude|{}exclude[0]
         final fun <get-exclude>(): kotlin/Array<kotlin.reflect/KClass<*>> // com.amazon.lastmile.kotlin.inject.anvil/MergeComponent.exclude.<get-exclude>|<get-exclude>(){}[0]
