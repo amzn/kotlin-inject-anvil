@@ -18,9 +18,9 @@ android {
 }
 
 dependencies {
-    kspCommonMainMetadata libs.kotlin.inject.ksp
-    kspAndroid libs.kotlin.inject.ksp
-    kspIosSimulatorArm64 libs.kotlin.inject.ksp
+    kspCommonMainMetadata libs.kotlin.inject.ksp.bugfix
+    kspAndroid libs.kotlin.inject.ksp.bugfix
+    kspIosSimulatorArm64 libs.kotlin.inject.ksp.bugfix
 
     kspCommonMainMetadata project(':compiler')
     kspAndroid project(':compiler')
