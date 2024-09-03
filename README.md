@@ -148,6 +148,25 @@ A [sample project](sample) for Android and iOS is available.
 The idea and more background about this library is covered in this
 [public talk](https://ralf-wondratschek.com/presentation/extending-kotlin-inject.html).
 
+## Advanced options
+
+### Disabling processors
+
+In some occasions the behavior of certain built-in symbol processors of kotlin-inject-anvil
+doesn't meet expectations or should be changed. The recommendation in this case is to disable
+the built-in processors and create your own. A processor can be disabled through KSP options, e.g.
+
+```groovy
+ksp {
+    arg("com.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor", "disabled")
+}
+```
+
+The key of the option must match the fully qualified name of the symbol processor and the value
+must be `disabled`. All other values will keep the processor enabled. All built-in symbol
+processors are part of
+[this package](compiler/src/main/kotlin/com/amazon/lastmile/kotlin/inject/anvil/processor).
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.

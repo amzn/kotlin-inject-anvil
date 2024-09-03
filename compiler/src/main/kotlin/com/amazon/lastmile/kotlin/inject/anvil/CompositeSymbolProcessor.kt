@@ -5,7 +5,7 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 
 internal class CompositeSymbolProcessor(
-    vararg symbolProcessors: SymbolProcessor,
+    symbolProcessors: Collection<SymbolProcessor>,
 ) : SymbolProcessor {
 
     private val symbolProcessors = symbolProcessors.sortedBy { it::class.qualifiedName }

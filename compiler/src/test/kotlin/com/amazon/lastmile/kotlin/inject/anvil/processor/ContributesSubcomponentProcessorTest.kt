@@ -117,7 +117,7 @@ class ContributesSubcomponentProcessorTest {
                 addPreviousCompilationResult(previousResult2)
                 addPreviousCompilationResult(previousResult3)
             }
-            .configureAppPlatformProcessor()
+            .configureKotlinInjectAnvilProcessor()
             .compile(
                 """
                 package com.amazon.test

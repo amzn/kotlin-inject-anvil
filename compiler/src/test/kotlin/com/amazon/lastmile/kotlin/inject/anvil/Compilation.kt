@@ -31,7 +31,9 @@ class Compilation internal constructor(
     /**
      * Configures the behavior of this compilation.
      */
-    fun configureAppPlatformProcessor(): Compilation = apply {
+    fun configureKotlinInjectAnvilProcessor(
+        processorOptions: Map<String, String> = emptyMap(),
+    ): Compilation = apply {
         checkNotCompiled()
         check(!processorsConfigured) { "Processor should not be configured twice." }
 
@@ -42,6 +44,8 @@ class Compilation internal constructor(
                 SymbolProcessorProvider::class.java,
                 SymbolProcessorProvider::class.java.classLoader,
             )
+
+            this.processorOptions.putAll(processorOptions)
 
             // Run KSP embedded directly within this kotlinc invocation
             withCompilation = true
@@ -83,8 +87,9 @@ class Compilation internal constructor(
     }
 
     /**
-     * Compiles the underlying [KotlinCompilation]. Note that if [configureAppPlatformProcessor] has not been called
-     * prior to this, it will be configured with default behavior.
+     * Compiles the underlying [KotlinCompilation]. Note that if
+     * [configureKotlinInjectAnvilProcessor] has not been called prior to this, it will be
+     * configured with default behavior.
      */
     fun compile(
         @Language("kotlin") vararg sources: String,
@@ -93,7 +98,7 @@ class Compilation internal constructor(
         checkNotCompiled()
         if (!processorsConfigured) {
             // Configure with default behaviors
-            configureAppPlatformProcessor()
+            configureKotlinInjectAnvilProcessor()
         }
         addSources(*sources)
         isCompiled = true
@@ -119,7 +124,7 @@ class Compilation internal constructor(
  * Helpful for testing code generators in unit tests end to end.
  *
  * This covers common cases, but is built upon reusable logic in [Compilation] and
- * [Compilation.configureAppPlatformProcessor]. Consider using those APIs if more
+ * [Compilation.configureKotlinInjectAnvilProcessor]. Consider using those APIs if more
  * advanced configuration is needed.
  */
 fun compile(
@@ -149,7 +154,7 @@ fun compile(
                 addPreviousCompilationResult(previousCompilationResult)
             }
         }
-        .configureAppPlatformProcessor()
+        .configureKotlinInjectAnvilProcessor()
         .compile(*sources)
         .also {
             if (exitCode == KotlinCompilation.ExitCode.OK) {
