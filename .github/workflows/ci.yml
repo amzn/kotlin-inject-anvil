@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '**'
+  pull_request:
+
+jobs:
+  test-ubuntu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test on Ubuntu
+        run: ./gradlew assemble test --stacktrace --show-version --continue
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: test-results
+          path: ./**/build/reports/tests/
+
+  test-mac:
+    runs-on: macos-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test on Mac
+        run: ./gradlew assemble test --stacktrace --show-version --continue
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: test-results
+          path: ./**/build/reports/tests/
+
+  binary-compatibility-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: API check
+        run: ./gradlew apiCheck --stacktrace --show-version --continue
+
+  ktlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: KtLint
+        run: ./gradlew ktlintCheck --no-build-cache --stacktrace --show-version --continue
+
+  android-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Android Lint
+        run: ./gradlew lint --no-build-cache --stacktrace --show-version --continue
+
+      - name: Upload Android Lint Results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: lint-results
+          path: ./**/build/reports/lint-results.html
+
+  detekt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Detekt
+        run: ./gradlew detekt --stacktrace --show-version --continue
+
+  publish-maven-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish to Maven Local
+        run: ./gradlew publishToMavenLocal --stacktrace --show-version

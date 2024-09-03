@@ -33,8 +33,8 @@ allprojects {
     }
 }
 
-// TODO
-def ci = false
+def ci = providers.environmentVariable('CI').isPresent() || providers.gradleProperty('CI').isPresent()
+logger.lifecycle("CI build: $ci")
 
 subprojects {
     def javaTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
