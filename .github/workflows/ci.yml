@@ -1,0 +1,265 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '**'
+  pull_request:
+
+jobs:
+  test-ubuntu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test on Ubuntu
+        run: ./gradlew assemble test
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: test-results
+          path: ./**/build/reports/tests/
+
+  test-mac:
+    runs-on: macos-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test on Mac
+        run: ./gradlew assemble test
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: test-results
+          path: ./**/build/reports/tests/
+  #  binary-compatibility-check:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 25
+#
+#    steps:
+#      - uses: actions/checkout@v4.1.7
+#      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4
+#        with:
+#          distribution: 'zulu'
+#          java-version: '17'
+#          check-latest: true
+#
+#      - name: API check
+
+#        run: ./gradlew apiCheck --no-daemon --stacktrace
+
+#  test-windows:
+#    runs-on: windows-latest
+#    timeout-minutes: 25
+#
+#    steps:
+#      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+#      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4
+#        with:
+#          distribution: 'zulu'
+#          java-version: '17'
+#          check-latest: true
+#
+#      # On Windows the command looks a little bit different. Notice that we use the .bat file and
+#      # quotes for the Kotlin version, because dots "." in the Kotlin version and parameter name
+#      # cause issues.
+#      #
+#      # Expressions in Github actions are limited. If there would be an if expression, then we
+#      # wouldn't need to duplicate the next step and depending on the OS enable / disable them.
+#      - name: Test on Windows
+#        run: ./gradlew.bat assemble test --no-build-cache --no-daemon --stacktrace -Doverride_config-fullTestRun=false -Doverride_config-includeKspTests=false
+#
+#      - name: Upload Test Results
+#        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+#        if: ${{ failure() }}
+#        with:
+#          name: test-results-windows
+#          path: ./**/build/reports/tests/
+
+#  ktlint:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#
+#    steps:
+#      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+#      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4
+#        with:
+#          distribution: 'zulu'
+#          java-version: '17'
+#          check-latest: true
+#
+#      - name: KtLint
+#        run: ./gradlew ktlintCheck --no-build-cache --no-daemon --stacktrace
+
+#  lint:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#
+#    steps:
+#      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+#      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4
+#        with:
+#          distribution: 'zulu'
+#          java-version: '17'
+#          check-latest: true
+#
+#      - name: Android Lint
+#        run: ./gradlew -p build-logic/delegate lint --no-build-cache --no-daemon --stacktrace
+#
+#      - name: Upload Lint Results
+#        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+#        if: ${{ failure() }}
+#        with:
+#          name: lint-results
+#          path: ./**/build/reports/lint-results.html
+
+#  publish-maven-local:
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#
+#    steps:
+#      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+#      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4
+#        with:
+#          distribution: 'zulu'
+#          java-version: '17'
+#          check-latest: true
+#
+#      - name: Publish to Maven Local
+#        run: ./gradlew clean publishToMavenLocal --no-build-cache --no-daemon --stacktrace
+
+#  instrumentation-tests:
+#    name: Instrumentation tests
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 20
+#    strategy:
+#      # Allow tests to continue on other devices if they fail on one device.
+#      fail-fast: false
+#      matrix:
+#        api-level:
+#          # Consider other devices in case it's needed.
+#          #- 24
+#          - 29
+#    steps:
+#      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+#      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4
+#        with:
+#          distribution: 'zulu'
+#          java-version: '17'
+#          check-latest: true
+#
+#      - name: Enable KVM
+#        run: |
+#          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+#          sudo udevadm control --reload-rules
+#          sudo udevadm trigger --name-match=kvm
+#
+#      - name: AVD cache
+#        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
+#        id: avd-cache
+#        with:
+#          path: |
+#            ~/.android/avd/*
+#            ~/.android/adb*
+#          key: avd-${{ matrix.api-level }}
+#
+#      - name: create AVD and generate snapshot for caching
+#        if: steps.avd-cache.outputs.cache-hit != 'true'
+#        uses: reactivecircus/android-emulator-runner@f0d1ed2dcad93c7479e8b2f2226c83af54494915 # v2
+#        with:
+#          api-level: ${{ matrix.api-level }}
+#          arch: x86_64
+#          disable-animations: false
+#          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+#          force-avd-creation: false
+#          profile : Galaxy Nexus
+#          ram-size : 4096M
+#          target: default
+#          script: echo "Generated AVD snapshot for caching."
+#
+#      - name: Instrumentation Tests
+#        uses: reactivecircus/android-emulator-runner@f0d1ed2dcad93c7479e8b2f2226c83af54494915 # v2
+#        with:
+#          api-level: ${{ matrix.api-level }}
+#          arch: x86_64
+#          disable-animations: true
+#          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+#          force-avd-creation: false
+#          profile : Galaxy Nexus
+#          ram-size : 4096M
+#          target: default
+#          script: ./gradlew connectedCheck --no-build-cache --no-daemon --stacktrace
+#
+#      - name: Upload results
+#        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+#        with:
+#          name: instrumentation-test-results
+#          path: ./**/build/reports/androidTests/connected/**
+
+#  gradle-integration-tests:
+#    name: Gradle integration tests
+#    runs-on: macos-latest
+#    timeout-minutes: 25
+#
+#    steps:
+#      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+#      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4
+#        with:
+#          distribution: 'zulu'
+#          java-version: '17'
+#          check-latest: true
+#
+#      - name: Gradle integration tests
+#        run: ./gradlew gradleTest --stacktrace
+#
+#      - name: Upload Test Results
+#        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4
+#        if: ${{ failure() }}
+#        with:
+#          name: test-results-gradle-integration
+#          path: ./**/build/reports/tests/
+
+#  all-checks:
+#    if: always()
+#    runs-on: ubuntu-latest
+#    needs:
+#      - binary-compatibility-check
+#      - test-ubuntu
+#      - test-windows
+#      - dependency-guard
+#      - ktlint
+#      - lint
+#      - publish-maven-local
+#      - test-gradle-plugin
+#      - kapt-for-dagger-factories
+#      - instrumentation-tests
+#      - gradle-integration-tests
+#      - gradle-wrapper-validation
+#      - build-benchmark-project
+#
+#    steps:
+#      - name: require that all other jobs have passed
+#        uses: re-actors/alls-green@release/v1
+#        with:
+#          allowed-skips: publish-snapshot
+#          jobs: ${{ toJSON(needs) }}
