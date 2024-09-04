@@ -33,6 +33,7 @@ class Compilation internal constructor(
      */
     fun configureKotlinInjectAnvilProcessor(
         processorOptions: Map<String, String> = emptyMap(),
+        symbolProcessorProviders: Set<SymbolProcessorProvider> = emptySet(),
     ): Compilation = apply {
         checkNotCompiled()
         check(!processorsConfigured) { "Processor should not be configured twice." }
@@ -40,10 +41,11 @@ class Compilation internal constructor(
         processorsConfigured = true
 
         kotlinCompilation.configureKsp(useKsp2 = true) {
-            symbolProcessorProviders += ServiceLoader.load(
+            this.symbolProcessorProviders += ServiceLoader.load(
                 SymbolProcessorProvider::class.java,
                 SymbolProcessorProvider::class.java.classLoader,
             )
+            this.symbolProcessorProviders += symbolProcessorProviders
 
             this.processorOptions.putAll(processorOptions)
 

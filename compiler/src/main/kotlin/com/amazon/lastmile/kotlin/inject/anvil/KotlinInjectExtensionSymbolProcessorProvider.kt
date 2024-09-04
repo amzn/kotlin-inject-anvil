@@ -5,6 +5,7 @@ import com.amazon.lastmile.kotlin.inject.anvil.processor.ContributesSubcomponent
 import com.amazon.lastmile.kotlin.inject.anvil.processor.ContributesSubcomponentProcessor
 import com.amazon.lastmile.kotlin.inject.anvil.processor.ContributesToProcessor
 import com.amazon.lastmile.kotlin.inject.anvil.processor.MergeComponentProcessor
+import com.amazon.lastmile.kotlin.inject.anvil.processor.extend.ContributingAnnotationProcessor
 import com.google.auto.service.AutoService
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
@@ -54,12 +55,12 @@ class KotlinInjectExtensionSymbolProcessorProvider : SymbolProcessorProvider {
                         codeGenerator = environment.codeGenerator,
                         logger = environment.logger,
                     ),
-                    contributingAnnotations = listOf(
-                        ContributesTo::class,
-                        ContributesBinding::class,
-                        ContributesSubcomponent::class,
-                        ContributesSubcomponent.Factory::class,
-                    ),
+                ),
+            )
+            addIfEnabled(
+                ContributingAnnotationProcessor(
+                    codeGenerator = environment.codeGenerator,
+                    logger = environment.logger,
                 ),
             )
         }

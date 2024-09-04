@@ -20,6 +20,9 @@ public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anv
 	public abstract fun exclude ()[Ljava/lang/Class;
 }
 
+public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/extend/ContributingAnnotation : java/lang/annotation/Annotation {
+}
+
 public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/internal/Origin : java/lang/annotation/Annotation {
 	public abstract fun value ()Ljava/lang/Class;
 }

@@ -1,6 +1,7 @@
 package com.amazon.lastmile.kotlin.inject.anvil.internal
 
 import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.annotation.AnnotationTarget.PROPERTY
 import kotlin.reflect.KClass
 
 /**
@@ -8,7 +9,7 @@ import kotlin.reflect.KClass
  *
  * Marker for generated component interface to link their origin.
  */
-@Target(CLASS)
+@Target(CLASS, PROPERTY)
 public annotation class Origin(
     /**
      * Reference to the class that triggered generating this component interface.
