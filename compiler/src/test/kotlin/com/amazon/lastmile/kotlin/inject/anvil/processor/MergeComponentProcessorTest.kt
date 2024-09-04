@@ -11,6 +11,7 @@ import com.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import com.amazon.lastmile.kotlin.inject.anvil.compile
 import com.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import com.amazon.lastmile.kotlin.inject.anvil.inner
+import com.amazon.lastmile.kotlin.inject.anvil.mergedComponent
 import com.amazon.lastmile.kotlin.inject.anvil.otherScopeSource
 import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
@@ -407,13 +408,6 @@ class MergeComponentProcessorTest {
             )
         }
     }
-
-    private val Class<*>.mergedComponent: Class<*>
-        get() = classLoader.loadClass(
-            "$packageName." +
-                canonicalName.substring(packageName.length + 1).replace(".", "") +
-                "Merged",
-        )
 
     private val JvmCompilationResult.stringComponent: Class<*>
         get() = classLoader.loadClass("com.amazon.test.StringComponent")

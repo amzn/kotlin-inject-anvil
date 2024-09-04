@@ -150,9 +150,39 @@ The idea and more background about this library is covered in this
 
 ## Advanced options
 
+### Custom symbol processors
+
+`kotlin-inject-anvil` is extensible with custom annotations and KSP symbol processors. In
+generated code you can reference annotations from `kotlin-inject-anvil` and that code will be
+picked up.
+
+For example, assume this annotation:
+```kotlin
+@Target(CLASS)
+@ContributingAnnotation
+annotation class MyCustomAnnotation
+```
+Note the `@ContributingAnnotation` marker, which is important for incremental compilation and
+multi-round support.
+
+A custom KSP symbol processor uses this annotation as trigger and generates following code:
+```
+@ContributesTo
+@SingleInAppScope
+interface MyCustomComponent {
+    @Provides
+    fun provideMyCustomType(): MyCustomType = ...
+}
+```
+This generated component interface `MyCustomComponent` will be picked up and merged in the
+corresponding component.
+
+Custom annotations and symbol processors are very powerful and allow you to adjust
+`kotlin-inject-anvil` to your needs and your codebase.
+
 ### Disabling processors
 
-In some occasions the behavior of certain built-in symbol processors of kotlin-inject-anvil
+In some occasions the behavior of certain built-in symbol processors of `kotlin-inject-anvil`
 doesn't meet expectations or should be changed. The recommendation in this case is to disable
 the built-in processors and create your own. A processor can be disabled through KSP options, e.g.
 

@@ -3,8 +3,12 @@
 package com.amazon.lastmile.kotlin.inject.anvil.processor
 
 import com.amazon.lastmile.kotlin.inject.anvil.ContextAware
+import com.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+import com.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+import com.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import com.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import com.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+import com.amazon.lastmile.kotlin.inject.anvil.extend.ContributingAnnotation
 import com.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.containingFile
@@ -15,6 +19,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -22,7 +27,6 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
-import kotlin.reflect.KClass
 
 /**
  * Generates the code for [MergeComponent].
@@ -51,7 +55,6 @@ internal class MergeComponentProcessor(
     private val codeGenerator: CodeGenerator,
     override val logger: KSPLogger,
     private val contributesSubcomponentProcessor: ContributesSubcomponentProcessor,
-    private val contributingAnnotations: List<KClass<out Annotation>>,
 ) : SymbolProcessor, ContextAware {
 
     private val processedComponents = mutableSetOf<String>()
@@ -77,9 +80,33 @@ internal class MergeComponentProcessor(
             return emptyList()
         }
 
+        val contributingAnnotations = sequenceOf(
+            ContributesTo::class,
+            ContributesBinding::class,
+            ContributesSubcomponent::class,
+            ContributesSubcomponent.Factory::class,
+            ContributingAnnotation::class,
+        )
+            .map { it.requireQualifiedName() }
+            .plus(
+                resolver.getDeclarationsFromPackage(LOOKUP_PACKAGE)
+                    .filterIsInstance<KSPropertyDeclaration>()
+                    .mapNotNull { property ->
+                        // This gives us KClass<Abc>
+                        property.type.resolve()
+                            .arguments
+                            .singleOrNull()
+                            ?.type
+                            // This gives us Abc
+                            ?.resolve()
+                            ?.declaration as? KSClassDeclaration
+                    }
+                    .map { it.requireQualifiedName() },
+            )
+
         // We will generate more component interfaces in our look up package in this round. Wait
         // for the next round before merging.
-        if (hasNewContributionInNextRound(resolver)) {
+        if (hasNewContributionInNextRound(resolver, contributingAnnotations)) {
             return componentsToMerge.toList()
         }
 
@@ -142,13 +169,16 @@ internal class MergeComponentProcessor(
         )
     }
 
-    private fun hasNewContributionInNextRound(resolver: Resolver): Boolean {
-        return contributingAnnotations.asSequence().flatMap {
+    private fun hasNewContributionInNextRound(
+        resolver: Resolver,
+        contributingAnnotations: Sequence<String>,
+    ): Boolean {
+        return contributingAnnotations.flatMap {
             resolver.getNewSymbolsWithAnnotation(it)
         }.any { true }
     }
 
-    private fun Resolver.getNewSymbolsWithAnnotation(annotation: KClass<*>): Sequence<KSAnnotated> {
+    private fun Resolver.getNewSymbolsWithAnnotation(annotation: String): Sequence<KSAnnotated> {
         val newFiles = getNewFiles().toSet()
         return getSymbolsWithAnnotation(annotation)
             .filter { it.containingFile in newFiles }

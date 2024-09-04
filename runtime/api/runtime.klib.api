@@ -6,6 +6,10 @@
 // - Show declarations: true
 
 // Library unique name: <kotlin-inject-anvil:runtime>
+open annotation class com.amazon.lastmile.kotlin.inject.anvil.extend/ContributingAnnotation : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil.extend/ContributingAnnotation|null[0]
+    constructor <init>() // com.amazon.lastmile.kotlin.inject.anvil.extend/ContributingAnnotation.<init>|<init>(){}[0]
+}
+
 open annotation class com.amazon.lastmile.kotlin.inject.anvil.internal/Origin : kotlin/Annotation { // com.amazon.lastmile.kotlin.inject.anvil.internal/Origin|null[0]
     constructor <init>(kotlin.reflect/KClass<*>) // com.amazon.lastmile.kotlin.inject.anvil.internal/Origin.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
 
