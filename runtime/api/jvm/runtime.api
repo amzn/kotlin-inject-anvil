@@ -1,32 +1,32 @@
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/ContributesBinding : java/lang/annotation/Annotation {
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesBinding : java/lang/annotation/Annotation {
 	public abstract fun boundType ()Ljava/lang/Class;
 	public abstract fun scope ()Ljava/lang/Class;
 }
 
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/ContributesBinding$Container : java/lang/annotation/Annotation {
-	public abstract fun value ()[Lcom/amazon/lastmile/kotlin/inject/anvil/ContributesBinding;
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesBinding$Container : java/lang/annotation/Annotation {
+	public abstract fun value ()[Lsoftware/amazon/lastmile/kotlin/inject/anvil/ContributesBinding;
 }
 
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent : java/lang/annotation/Annotation {
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent : java/lang/annotation/Annotation {
 }
 
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent$Factory : java/lang/annotation/Annotation {
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent$Factory : java/lang/annotation/Annotation {
 }
 
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/ContributesTo : java/lang/annotation/Annotation {
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesTo : java/lang/annotation/Annotation {
 }
 
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/MergeComponent : java/lang/annotation/Annotation {
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/MergeComponent : java/lang/annotation/Annotation {
 	public abstract fun exclude ()[Ljava/lang/Class;
 }
 
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/extend/ContributingAnnotation : java/lang/annotation/Annotation {
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/extend/ContributingAnnotation : java/lang/annotation/Annotation {
 }
 
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/internal/Origin : java/lang/annotation/Annotation {
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/internal/Origin : java/lang/annotation/Annotation {
 	public abstract fun value ()Ljava/lang/Class;
 }
 
-public abstract interface annotation class com/amazon/lastmile/kotlin/inject/anvil/internal/Subcomponent : java/lang/annotation/Annotation {
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/internal/Subcomponent : java/lang/annotation/Annotation {
 }
 

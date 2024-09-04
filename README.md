@@ -36,8 +36,8 @@ nor `RealAuthenticator` are referenced anywhere else.
 The project comes with a KSP plugin and a runtime module:
 ```groovy
 dependencies {
-    kspCommonMainMetadata "com.amazon.lastmile.kotlin.inject.anvil:compiler:$version"
-    commonMainImplementation "com.amazon.lastmile.kotlin.inject.anvil:runtime:$version"
+    kspCommonMainMetadata "software.amazon.lastmile.kotlin.inject.anvil:compiler:$version"
+    commonMainImplementation "software.amazon.lastmile.kotlin.inject.anvil:runtime:$version"
 }
 ```
 For details how to setup KSP itself for multiplatform projects see the
@@ -188,14 +188,14 @@ the built-in processors and create your own. A processor can be disabled through
 
 ```groovy
 ksp {
-    arg("com.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor", "disabled")
+    arg("software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor", "disabled")
 }
 ```
 
 The key of the option must match the fully qualified name of the symbol processor and the value
 must be `disabled`. All other values will keep the processor enabled. All built-in symbol
 processors are part of
-[this package](compiler/src/main/kotlin/com/amazon/lastmile/kotlin/inject/anvil/processor).
+[this package](compiler/src/main/kotlin/software/amazon/lastmile/kotlin/inject/anvil/processor).
 
 ## Security
 
