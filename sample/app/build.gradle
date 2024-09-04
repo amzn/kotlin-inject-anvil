@@ -14,7 +14,7 @@ kotlin {
 }
 
 android {
-    namespace 'com.amazon.lastmile.kotlin.inject.anvil.sample.app'
+    namespace 'software.amazon.lastmile.kotlin.inject.anvil.sample.app'
 }
 
 dependencies {

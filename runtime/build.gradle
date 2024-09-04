@@ -45,7 +45,7 @@ kotlin {
 }
 
 android {
-    namespace 'com.amazon.lastmile.kotlin.inject.anvil'
+    namespace 'software.amazon.lastmile.kotlin.inject.anvil'
 }
 
 apiValidation {
