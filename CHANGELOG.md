@@ -19,7 +19,7 @@
 ### Other Notes & Contributions
 
 
-## [0.0.1] - 2024-09-05
+## [0.0.1] - 2024-09-06
 
 - Initial release.
 
