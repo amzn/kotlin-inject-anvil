@@ -44,6 +44,15 @@ For details how to setup KSP itself for multiplatform projects see the
 [official documentation](https://kotlinlang.org/docs/ksp-multiplatform.html). The setup for
 `kotlin-inject` is described [here](https://github.com/evant/kotlin-inject).
 
+#### Snapshot builds
+
+To import snapshot builds use following repository:
+```groovy
+maven {
+    url 'https://aws.oss.sonatype.org/content/repositories/snapshots/'
+}
+```
+
 ## Usage
 
 ### Contributions
@@ -166,7 +175,7 @@ Note the `@ContributingAnnotation` marker, which is important for incremental co
 multi-round support.
 
 A custom KSP symbol processor uses this annotation as trigger and generates following code:
-```
+```kotlin
 @ContributesTo
 @SingleInAppScope
 interface MyCustomComponent {
