@@ -106,6 +106,12 @@ subprojects {
             checkTask.dependsOn('detekt')
         }
     }
+
+    plugins.withId(libs.plugins.maven.publish.get().pluginId) {
+        def publish = extensions.getByType(com.vanniktech.maven.publish.MavenPublishBaseExtension.class)
+        //noinspection GroovyAssignabilityCheck
+        publish.publishToMavenCentral(new com.vanniktech.maven.publish.SonatypeHost('https://aws.oss.sonatype.org'))
+    }
 }
 
 private static void configureDefaultDetektTask(SourceTask task) {
