@@ -1,5 +1,8 @@
 # kotlin-inject-anvil
 
+[![Maven Central](https://img.shields.io/maven-central/v/software.amazon.lastmile.kotlin.inject.anvil/compiler.svg?label=Maven%20Central)](https://central.sonatype.com/search?smo=true&namespace=software.amazon.lastmile.kotlin.inject.anvil)
+[![CI](https://github.com/amzn/kotlin-inject-anvil/workflows/CI/badge.svg)](https://github.com/amzn/kotlin-inject-anvil/actions?query=branch%3Amain)
+
 [kotlin-inject](https://github.com/evant/kotlin-inject) is a compile-time dependency injection
 framework for Kotlin Multiplatform similar to Dagger 2 for Java.
 [Anvil](https://github.com/square/anvil) extends Dagger 2 to simplify dependency injection. This
@@ -108,6 +111,25 @@ class RealAuthenticator : Authenticator
 `@ContributesBinding` will generate a provider method similar to the one above and automatically
 add it to the final component.
 
+#### `@ContributesSubcomponent`
+
+The `@ContributesSubcomponent` annotation allows you to define a subcomponent in any Gradle module,
+but the final `@Component` will be generated when the parent component is merged.
+```kotlin
+@ContributesSubcomponent
+@SingleInRendererScope
+interface RendererComponent {
+
+    @ContributesSubcomponent.Factory
+    @SingleInAppScope
+    interface Factory {
+        fun createRendererComponent(): RendererComponent
+    }
+}
+```
+For more details on usage of the annotation and behavior
+[see the documentation](runtime/src/commonMain/kotlin/software/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent.kt).
+
 ### Merging
 
 With `kotlin-inject` components are defined similar to the one below in order to instantiate your
@@ -161,11 +183,11 @@ The idea and more background about this library is covered in this
 
 ### Custom symbol processors
 
-`kotlin-inject-anvil` is extensible with custom annotations and KSP symbol processors. In
-generated code you can reference annotations from `kotlin-inject-anvil` and that code will be
-picked up.
+`kotlin-inject-anvil` is extensible and you can create your own annotations and KSP symbol
+processors. In the generated code you can reference annotations from `kotlin-inject-anvil` itself
+and build logic on top of them.
 
-For example, assume this annotation:
+For example, assume this is your annotation:
 ```kotlin
 @Target(CLASS)
 @ContributingAnnotation
@@ -174,7 +196,7 @@ annotation class MyCustomAnnotation
 Note the `@ContributingAnnotation` marker, which is important for incremental compilation and
 multi-round support.
 
-A custom KSP symbol processor uses this annotation as trigger and generates following code:
+Your custom KSP symbol processor uses this annotation as trigger and generates following code:
 ```kotlin
 @ContributesTo
 @SingleInAppScope
@@ -183,11 +205,12 @@ interface MyCustomComponent {
     fun provideMyCustomType(): MyCustomType = ...
 }
 ```
-This generated component interface `MyCustomComponent` will be picked up and merged in the
-corresponding component.
+This generated component interface `MyCustomComponent` will be picked up by `kotlin-inject-anvil's`
+symbol processors and contributed to the `@SingleInAppScope` due to the `@ContributesTo`
+annotation.
 
-Custom annotations and symbol processors are very powerful and allow you to adjust
-`kotlin-inject-anvil` to your needs and your codebase.
+**Custom annotations and symbol processors are very powerful and allow you to adjust
+`kotlin-inject-anvil` to your needs and your codebase.**
 
 ### Disabling processors
 
