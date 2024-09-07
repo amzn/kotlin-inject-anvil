@@ -4,6 +4,8 @@
 
 ### Added
 
+- Add multi-binding support to `@ContributesBinding` via a `multibinding` parameter.
+
 ### Changed
 
 ### Deprecated
