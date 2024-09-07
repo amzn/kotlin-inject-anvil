@@ -4,6 +4,8 @@
 
 ### Added
 
+- Add `mingwX64()` target to runtime.
+
 ### Changed
 
 ### Deprecated
