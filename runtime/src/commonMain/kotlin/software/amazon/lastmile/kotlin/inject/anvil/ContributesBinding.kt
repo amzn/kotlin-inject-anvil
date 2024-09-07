@@ -63,6 +63,18 @@ import kotlin.reflect.KClass
  * @ContributesBinding(boundType = AbstractTokenProvider::class)
  * class RealAuthenticator : AbstractTokenProvider(), Authenticator
  * ```
+ *
+ * ## Multi-bindings
+ *
+ * Bindings can be optionally contributed to a multi-binding `Set` by setting the [multibinding]
+ * property to `true`.
+ *
+ * ```
+ * @Inject
+ * @ContributesBinding(boundType = Base::class)
+ * @ContributesBinding(boundType = Base2::class, multibinding = true)
+ * class Impl : Base, Base2
+ * ```
  */
 @Target(CLASS)
 @Repeatable
@@ -76,4 +88,9 @@ public annotation class ContributesBinding(
      * this annotated class.
      */
     val boundType: KClass<*> = Unit::class,
+    /**
+     * Indicates that this binding is a multibinding. If true, the generated provider will be
+     * annotated with `@IntoSet`.
+     */
+    val multibinding: Boolean = false,
 )
