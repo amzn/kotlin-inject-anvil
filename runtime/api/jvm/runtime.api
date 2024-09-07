@@ -1,5 +1,6 @@
 public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesBinding : java/lang/annotation/Annotation {
 	public abstract fun boundType ()Ljava/lang/Class;
+	public abstract fun multibinding ()Z
 	public abstract fun scope ()Ljava/lang/Class;
 }
 
