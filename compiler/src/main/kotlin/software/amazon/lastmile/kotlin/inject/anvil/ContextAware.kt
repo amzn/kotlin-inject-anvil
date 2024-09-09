@@ -57,10 +57,11 @@ internal interface ContextAware {
         check(clazz.getVisibility() == Visibility.PUBLIC, clazz, lazyMessage)
     }
 
-    fun checkIsInterface(clazz: KSClassDeclaration) {
-        check(clazz.classKind == ClassKind.INTERFACE, clazz) {
-            "Only interfaces can be contributed."
-        }
+    fun checkIsInterface(
+        clazz: KSClassDeclaration,
+        lazyMessage: () -> String = { "Only interfaces can be contributed." },
+    ) {
+        check(clazz.classKind == ClassKind.INTERFACE, clazz, lazyMessage)
     }
 
     fun KSClassDeclaration.scope(): KSAnnotation {

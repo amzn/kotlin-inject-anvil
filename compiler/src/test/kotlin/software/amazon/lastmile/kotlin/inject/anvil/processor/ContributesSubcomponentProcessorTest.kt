@@ -3,10 +3,12 @@
 package software.amazon.lastmile.kotlin.inject.anvil.processor
 
 import assertk.assertThat
+import assertk.assertions.contains
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import com.tschuchort.compiletesting.JvmCompilationResult
+import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -367,6 +369,38 @@ class ContributesSubcomponentProcessorTest {
                     .single { it.name == "getInt" }
                     .invoke(childComponent),
             ).isEqualTo(5)
+        }
+    }
+
+    @Test
+    fun `abstract classes are disallowed`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Provides
+
+            @ContributesSubcomponent
+            @ChildScope
+            abstract class OtherComponent {
+                @ContributesSubcomponent.Factory
+                @ParentScope
+                interface Parent {
+                    fun otherComponent(stringArg: String, intArg: Int): OtherComponent 
+                }
+            }
+            """,
+            scopesSource,
+            exitCode = COMPILATION_ERROR,
+        ) {
+            assertThat(messages).contains(
+                "Only interfaces can be contributed. If you have parameters on " +
+                    "your abstract class, then move them to the factory. See " +
+                    "@ContributesSubcomponent for more details.",
+            )
         }
     }
 
