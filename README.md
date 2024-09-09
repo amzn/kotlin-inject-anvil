@@ -111,6 +111,25 @@ class RealAuthenticator : Authenticator
 `@ContributesBinding` will generate a provider method similar to the one above and automatically
 add it to the final component.
 
+##### Multi-bindings
+
+`@ContributesBinding` supports `Set` multi-bindings via its `multibinding` parameter.
+
+```kotlin
+@Inject
+@SingleInAppScope
+@ContributesBinding(multibinding = true)
+class LoggingInterceptor : Interceptor
+
+@Component
+@MergeComponent
+@SingleInAppScope
+abstract class AppComponent {
+    // Will be contributed to this set multi-binding.
+    abstract val interceptors: Set<Interceptor>
+}
+```
+
 #### `@ContributesSubcomponent`
 
 The `@ContributesSubcomponent` annotation allows you to define a subcomponent in any Gradle module,

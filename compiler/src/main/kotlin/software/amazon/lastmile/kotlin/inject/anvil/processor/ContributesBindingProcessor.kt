@@ -16,11 +16,13 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
+import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
+import software.amazon.lastmile.kotlin.inject.anvil.argumentOfTypeAt
 import software.amazon.lastmile.kotlin.inject.anvil.decapitalize
 
 /**
@@ -84,9 +86,10 @@ internal class ContributesBindingProcessor(
             .map {
                 GeneratedFunction(
                     boundType = boundType(clazz, it),
+                    multibinding = it.argumentOfTypeAt<Boolean>(this, "multibinding") ?: false,
                 )
             }
-            .distinctBy { it.bindingMethodReturnType.canonicalName }
+            .distinctBy { it.bindingMethodReturnType.canonicalName + it.multibinding }
 
         val fileSpec = FileSpec.builder(componentClassName)
             .addType(
@@ -97,12 +100,19 @@ internal class ContributesBindingProcessor(
                     .addOriginAnnotation(clazz)
                     .addFunctions(
                         boundTypes.map { function ->
+                            val multibindingSuffix = if (function.multibinding) {
+                                "Multibinding"
+                            } else {
+                                ""
+                            }
                             FunSpec
                                 .builder(
                                     "provide${clazz.innerClassNames()}" +
-                                        function.bindingMethodReturnType.simpleName,
+                                        function.bindingMethodReturnType.simpleName +
+                                        multibindingSuffix,
                                 )
                                 .addAnnotation(Provides::class)
+                                .apply { if (function.multibinding) addAnnotation(IntoSet::class) }
                                 .apply {
                                     val parameterName = clazz.innerClassNames().decapitalize()
                                     addParameter(
@@ -254,6 +264,7 @@ internal class ContributesBindingProcessor(
 
     private inner class GeneratedFunction(
         boundType: KSType,
+        val multibinding: Boolean,
     ) {
         val bindingMethodReturnType by lazy {
             boundType.toClassName()

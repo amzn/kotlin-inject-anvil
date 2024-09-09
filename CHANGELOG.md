@@ -4,6 +4,7 @@
 
 ### Added
 
+- Add multi-binding support to `@ContributesBinding` via a `multibinding` parameter.
 - Add `mingwX64()` target to runtime.
 
 ### Changed

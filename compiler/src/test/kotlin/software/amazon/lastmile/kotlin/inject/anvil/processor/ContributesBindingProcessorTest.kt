@@ -4,9 +4,11 @@ package software.amazon.lastmile.kotlin.inject.anvil.processor
 
 import assertk.assertThat
 import assertk.assertions.contains
+import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
 import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
+import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
@@ -15,6 +17,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.generatedComponent
 import software.amazon.lastmile.kotlin.inject.anvil.inner
 import software.amazon.lastmile.kotlin.inject.anvil.isAnnotatedWith
+import software.amazon.lastmile.kotlin.inject.anvil.isNotAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.origin
 import software.amazon.lastmile.kotlin.inject.anvil.otherScopeSource
 import software.amazon.test.SingleInAppScope
@@ -382,6 +385,82 @@ class ContributesBindingProcessorTest {
             assertThat(messages).contains(
                 "The same type should not be contributed twice: software.amazon.test.Base.",
             )
+        }
+    }
+
+    @Test
+    fun `a component interface is generated in the lookup package for a contributed multibinding`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import me.tatarka.inject.annotations.Inject
+
+            interface Base
+
+            @Inject
+            @SingleInAppScope
+            @ContributesBinding(multibinding = true)
+            class Impl : Base 
+            """,
+        ) {
+            val generatedComponent = impl.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
+            assertThat(generatedComponent.origin).isEqualTo(impl)
+
+            val method = generatedComponent.declaredMethods.single()
+            assertThat(method.name).isEqualTo("provideImplBaseMultibinding")
+            assertThat(method.parameters.single().type).isEqualTo(impl)
+            assertThat(method.returnType).isEqualTo(base)
+            assertThat(method).isAnnotatedWith(Provides::class)
+            assertThat(method).isAnnotatedWith(IntoSet::class)
+        }
+    }
+
+    @Test
+    fun `both binding and multibinding component interfaces can be generated in the lookup package for a contributed multibinding`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import me.tatarka.inject.annotations.Inject
+
+            interface Base
+
+            @Inject
+            @SingleInAppScope
+            @ContributesBinding(multibinding = false)
+            @ContributesBinding(multibinding = true)
+            class Impl : Base 
+            """,
+        ) {
+            val generatedComponent = impl.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
+            assertThat(generatedComponent.origin).isEqualTo(impl)
+
+            assertThat(generatedComponent.declaredMethods).hasSize(2)
+
+            val bindingMethod = generatedComponent.declaredMethods.first {
+                it.name == "provideImplBase"
+            }
+            assertThat(bindingMethod.parameters.single().type).isEqualTo(impl)
+            assertThat(bindingMethod.returnType).isEqualTo(base)
+            assertThat(bindingMethod).isAnnotatedWith(Provides::class)
+            assertThat(bindingMethod).isNotAnnotatedWith(IntoSet::class)
+
+            val multibindingBindingMethod = generatedComponent.declaredMethods.first {
+                it.name == "provideImplBaseMultibinding"
+            }
+            assertThat(multibindingBindingMethod.parameters.single().type).isEqualTo(impl)
+            assertThat(multibindingBindingMethod.returnType).isEqualTo(base)
+            assertThat(multibindingBindingMethod).isAnnotatedWith(Provides::class)
+            assertThat(multibindingBindingMethod).isAnnotatedWith(IntoSet::class)
         }
     }
 
