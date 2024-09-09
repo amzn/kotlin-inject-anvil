@@ -112,7 +112,11 @@ internal class ContributesBindingProcessor(
                                         multibindingSuffix,
                                 )
                                 .addAnnotation(Provides::class)
-                                .apply { if (function.multibinding) addAnnotation(IntoSet::class) }
+                                .apply {
+                                    if (function.multibinding) {
+                                        addAnnotation(IntoSet::class)
+                                    }
+                                }
                                 .apply {
                                     val parameterName = clazz.innerClassNames().decapitalize()
                                     addParameter(
