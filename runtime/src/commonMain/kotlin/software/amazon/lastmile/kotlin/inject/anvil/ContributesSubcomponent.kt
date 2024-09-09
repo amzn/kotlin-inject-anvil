@@ -81,6 +81,25 @@ import kotlin.annotation.AnnotationTarget.CLASS
  *     return ChildComponentFinal.create(parentComponent, string, int)
  * }
  * ```
+ * Contributing abstract classes is not supported, e.g. the following is not supported and the
+ * parameter can be moved to the factory instead and then the abstract class can be converted to
+ * an interface.
+ * ```
+ * // Remove the parameter and convert the class to an interface. The parameter will be
+ * // generated due to the Factory having this parameter.
+ * @ContributesSubcomponent
+ * @SingleInRendererScope
+ * abstract class RendererComponent(
+ *     @get:Provides val string: String,
+ * ) {
+ *
+ *     @ContributesSubcomponent.Factory
+ *     @SingleInAppScope
+ *     interface Factory {
+ *         fun createRendererComponent(string: String): RendererComponent
+ *     }
+ * }
+ * ```
  */
 @Target(CLASS)
 public annotation class ContributesSubcomponent {

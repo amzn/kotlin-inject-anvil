@@ -75,6 +75,11 @@ internal class ContributesSubcomponentFactoryProcessor(
             .getSymbolsWithAnnotation(ContributesSubcomponent::class)
             .filterIsInstance<KSClassDeclaration>()
             .forEach {
+                checkIsInterface(it) {
+                    "Only interfaces can be contributed. If you have parameters on your " +
+                        "abstract class, then move them to the factory. See " +
+                        "@ContributesSubcomponent for more details."
+                }
                 checkHasFactoryInnerClass(it)
             }
 
