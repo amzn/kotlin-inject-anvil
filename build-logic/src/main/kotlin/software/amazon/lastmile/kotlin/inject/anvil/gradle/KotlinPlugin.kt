@@ -1,13 +1,17 @@
 package software.amazon.lastmile.kotlin.inject.anvil.gradle
 
+import guru.nidi.graphviz.engine.Format
+import io.github.terrakok.KmpHierarchyConfig
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import java.io.File
@@ -18,6 +22,7 @@ internal open class KotlinPlugin : Plugin<Project> {
         target.configureKotlinCompile()
         target.configureKtLint()
         target.configureDetekt()
+        target.configureHierarchyPlugin()
     }
 
     private fun Project.configureJavaCompile() {
@@ -80,6 +85,20 @@ internal open class KotlinPlugin : Plugin<Project> {
             baseline = file("detekt-baseline.xml")
             config.from(File(rootDir, "gradle/detekt-config.yml"))
             buildUponDefaultConfig = true
+        }
+    }
+
+    private fun Project.configureHierarchyPlugin() {
+        plugins.withId(libs.findPlugin("kotlin.multiplatform").get().get().pluginId) {
+            plugins.apply(libs.findPlugin("kotlin.hierarchy").get().get().pluginId)
+
+            (extensions.getByType(KotlinMultiplatformExtension::class.java) as ExtensionAware)
+                .extensions
+                .getByType(KmpHierarchyConfig::class.java)
+                .run {
+                    formats(Format.PNG, Format.SVG)
+                    withTestHierarchy = true
+                }
         }
     }
 }

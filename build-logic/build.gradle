@@ -11,7 +11,7 @@ repositories {
 }
 
 def ci = providers.environmentVariable('CI').isPresent() || providers.gradleProperty('CI').isPresent()
-def javaTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+def javaTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
 def javaVersion = JavaVersion.toVersion(javaTarget.target)
 
 tasks.withType(JavaCompile).configureEach { task ->
@@ -56,8 +56,10 @@ gradlePlugin {
 dependencies {
     implementation libs.android.gradle.plugin
     implementation libs.detekt.gradle.plugin
+    implementation libs.graphviz.java
     implementation libs.kotlin.gradle.plugin.api
     implementation libs.kotlin.gradle.plugin
+    implementation libs.kotlin.hierarchy.plugin
     implementation libs.kotlinx.binaryCompatibilityValidator
     implementation libs.ktlint.gradle.plugin
     implementation libs.maven.publish.gradle.plugin
