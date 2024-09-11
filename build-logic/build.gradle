@@ -1,0 +1,71 @@
+buildscript {
+    ext {
+        kotlinVersion = libs.versions.kotlin.asProvider().get()
+        ktlintVersion = libs.versions.ktlint.gradle.get()
+    }
+}
+
+plugins {
+    id 'java-gradle-plugin'
+    alias libs.plugins.kotlin.jvm version "$kotlinVersion"
+    alias libs.plugins.ktlint version "$ktlintVersion"
+}
+
+repositories {
+    mavenCentral()
+    google()
+    gradlePluginPortal()
+}
+
+def ci = providers.environmentVariable('CI').isPresent() || providers.gradleProperty('CI').isPresent()
+def javaTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+def javaVersion = JavaVersion.toVersion(javaTarget.target)
+
+tasks.withType(JavaCompile).configureEach { task ->
+    task.sourceCompatibility = javaVersion.majorVersion
+    task.targetCompatibility = javaVersion.majorVersion
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach { task ->
+    task.compilerOptions.jvmTarget.set(javaTarget)
+    task.compilerOptions.allWarningsAsErrors.set(ci)
+}
+
+gradlePlugin {
+    plugins {
+        libraryJvmPlugin {
+            id = "software.amazon.lib.jvm"
+            displayName = "JVM Library Plugin"
+            implementationClass = "software.amazon.lastmile.kotlin.inject.anvil.gradle.LibraryJvmPlugin"
+            description = "Library plugin to configure JVM kotlin-inject-anvil modules."
+        }
+        libraryKmpPlugin {
+            id = "software.amazon.lib.kmp"
+            displayName = "KMP Library Plugin"
+            implementationClass = "software.amazon.lastmile.kotlin.inject.anvil.gradle.LibraryKmpPlugin"
+            description = "Library plugin to configure KMP kotlin-inject-anvil modules."
+        }
+        rootPlugin {
+            id = "software.amazon.root"
+            displayName = "Root Plugin"
+            implementationClass = "software.amazon.lastmile.kotlin.inject.anvil.gradle.RootPlugin"
+            description = "Plugin to configure the kotlin-inject-anvil root module."
+        }
+        samplePlugin {
+            id = "software.amazon.sample"
+            displayName = "Sample Plugin"
+            implementationClass = "software.amazon.lastmile.kotlin.inject.anvil.gradle.SamplePlugin"
+            description = "Plugin to configure kotlin-inject-anvil sample modules."
+        }
+    }
+}
+
+dependencies {
+    implementation libs.android.gradle.plugin
+    implementation libs.detekt.gradle.plugin
+    implementation libs.kotlin.gradle.plugin.api
+    implementation libs.kotlin.gradle.plugin
+    implementation libs.kotlinx.binaryCompatibilityValidator
+    implementation libs.ktlint.gradle.plugin
+    implementation libs.maven.publish.gradle.plugin
+}

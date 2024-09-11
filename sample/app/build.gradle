@@ -1,9 +1,6 @@
 plugins {
-    alias(libs.plugins.android.app)
-    alias(libs.plugins.kotlin.multiplatform)
+    id 'software.amazon.sample'
     alias(libs.plugins.ksp)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.detekt)
 }
 
 kotlin {
@@ -11,10 +8,6 @@ kotlin {
     iosSimulatorArm64()
 
     applyDefaultHierarchyTemplate()
-}
-
-android {
-    namespace 'software.amazon.lastmile.kotlin.inject.anvil.sample.app'
 }
 
 dependencies {

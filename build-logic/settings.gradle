@@ -1,0 +1,9 @@
+rootProject.name = 'kotlin-inject-anvil-build-logic'
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from files('../gradle/libs.versions.toml')
+        }
+    }
+}
