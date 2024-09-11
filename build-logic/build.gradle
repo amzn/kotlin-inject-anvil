@@ -1,14 +1,7 @@
-buildscript {
-    ext {
-        kotlinVersion = libs.versions.kotlin.asProvider().get()
-        ktlintVersion = libs.versions.ktlint.gradle.get()
-    }
-}
-
 plugins {
     id 'java-gradle-plugin'
-    alias libs.plugins.kotlin.jvm version "$kotlinVersion"
-    alias libs.plugins.ktlint version "$ktlintVersion"
+    alias libs.plugins.kotlin.jvm
+    alias libs.plugins.ktlint
 }
 
 repositories {
