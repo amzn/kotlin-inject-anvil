@@ -1,6 +1,0 @@
-rootProject.name = 'kotlin-inject-anvil'
-
-include ':compiler'
-include ':runtime'
-include ':sample:app'
-include ':sample:lib'

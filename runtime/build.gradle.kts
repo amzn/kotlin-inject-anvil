@@ -1,3 +1,5 @@
+import kotlinx.validation.ExperimentalBCVApi
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
@@ -47,9 +49,10 @@ kotlin {
 }
 
 android {
-    namespace 'software.amazon.lastmile.kotlin.inject.anvil'
+    namespace = "software.amazon.lastmile.kotlin.inject.anvil"
 }
 
 apiValidation {
+    @OptIn(ExperimentalBCVApi::class)
     klib.enabled = true
 }

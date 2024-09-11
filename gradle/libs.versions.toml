@@ -11,7 +11,7 @@ kotlin = "1.9.24"
 kotlin-compile-testing = "0.5.1"
 kotlin-inject = "0.7.1"
 # This is a snapshot build with the latest fixes. We need that in the sample app.
-kotlin-inject-bugfix = "0.7.2-20240710.214910-9"
+kotlin-inject-bugfix = "0.7.2-20240911.020938-12"
 kotlin-poet = "1.17.0"
 kotlinx-binaryCompatibilityValidator = "0.16.2"
 ksp = "1.9.24-1.0.20"
@@ -46,12 +46,12 @@ ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", versio
 maven-publish-gradle-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "maven-publish" }
 
 [plugins]
-android-app = { id = "com.android.application" }
-android-library = { id = "com.android.library" }
-detekt = { id = "io.gitlab.arturbosch.detekt" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm" }
-kotlinx-binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator" }
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform" }
-ksp = { id = "com.google.devtools.ksp" }
-ktlint = { id = "org.jlleitschuh.gradle.ktlint" }
-maven-publish = { id = "com.vanniktech.maven.publish" }
+android-app = { id = "com.android.application", version.ref="agp" }
+android-library = { id = "com.android.library", version.ref="agp" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref="detekt" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref="kotlin" }
+kotlinx-binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref="kotlinx-binaryCompatibilityValidator" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref="kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref="ksp" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref="ktlint-gradle" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref="maven-publish" }
