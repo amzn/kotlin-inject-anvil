@@ -15,6 +15,12 @@ import java.util.Locale
  */
 internal const val LOOKUP_PACKAGE = "amazon.lastmile.inject"
 
+/**
+ * A colon-delimited string whose values are the canonical class names of custom contributing
+ * annotations.
+ */
+internal const val OPTION_CONTRIBUTING_ANNOTATIONS = "kotlin-inject-anvil-contributing-annotations"
+
 internal fun String.decapitalize(): String = replaceFirstChar { it.lowercase(Locale.US) }
 internal fun String.capitalize(): String = replaceFirstChar {
     if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString()

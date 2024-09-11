@@ -209,11 +209,8 @@ and build logic on top of them.
 For example, assume this is your annotation:
 ```kotlin
 @Target(CLASS)
-@ContributingAnnotation
 annotation class MyCustomAnnotation
 ```
-Note the `@ContributingAnnotation` marker, which is important for incremental compilation and
-multi-round support.
 
 Your custom KSP symbol processor uses this annotation as trigger and generates following code:
 ```kotlin
@@ -230,6 +227,21 @@ annotation.
 
 **Custom annotations and symbol processors are very powerful and allow you to adjust
 `kotlin-inject-anvil` to your needs and your codebase.**
+
+There are two ways to indicate these to `kotlin-inject-anvil`. This is important for incremental compilation and multi-round support.
+
+1. Annotate your annotation with the `@ContributingAnnotation` marker and run `kotlin-inject-anvil`'s compiler over the project the annotation is hosted in. This ensures the annotation is understood as a contributing annotation in all downstream usages of this annotation.
+    ```kotlin
+    @ContributingAnnotation // <--- add this!
+    @Target(CLASS)
+    annotation class MyCustomAnnotation
+    ```
+2. Alternatively, if you don't control the annotation or otherwise cannot use option 1, you can specify custom annotations via the `kotlin-inject-anvil-contributing-annotations` KSP option. This option value is a colon-delimited string whose values are the canonical class names of your custom annotations.
+    ```kotlin
+    ksp {
+      arg("kotlin-inject-anvil-contributing-annotations", "com.example.MyCustomAnnotation")
+    }
+    ```
 
 ### Disabling processors
 
