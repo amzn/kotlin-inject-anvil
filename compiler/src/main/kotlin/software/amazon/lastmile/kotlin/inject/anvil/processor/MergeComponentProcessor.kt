@@ -120,6 +120,7 @@ internal class MergeComponentProcessor(
                     }
                     .map { it.requireQualifiedName() },
             )
+            .distinct() // Save duplicate lookups
 
         // We will generate more component interfaces in our look up package in this round. Wait
         // for the next round before merging.
@@ -191,7 +192,6 @@ internal class MergeComponentProcessor(
         contributingAnnotations: Sequence<String>,
     ): Boolean {
         return contributingAnnotations
-            .distinct() // Save duplicate lookups
             .flatMap {
                 resolver.getNewSymbolsWithAnnotation(it)
             }
