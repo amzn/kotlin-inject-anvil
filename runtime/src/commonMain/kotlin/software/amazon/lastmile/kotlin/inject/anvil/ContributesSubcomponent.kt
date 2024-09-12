@@ -1,6 +1,7 @@
 package software.amazon.lastmile.kotlin.inject.anvil
 
 import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.reflect.KClass
 
 /**
  * Generates a subcomponent when the parent component interface is merged.
@@ -102,7 +103,12 @@ import kotlin.annotation.AnnotationTarget.CLASS
  * ```
  */
 @Target(CLASS)
-public annotation class ContributesSubcomponent {
+public annotation class ContributesSubcomponent(
+    /**
+     * The scope in which to include this contributed component interface.
+     */
+    val scope: KClass<*> = Unit::class,
+) {
     /**
      * A factory for the contributed subcomponent.
      *
@@ -112,5 +118,10 @@ public annotation class ContributesSubcomponent {
      * The factory interface must have a single function with the contributed subcomponent as
      * return type. Parameters are supported as mentioned in [ContributesSubcomponent].
      */
-    public annotation class Factory
+    public annotation class Factory(
+        /**
+         * The scope in which to include this contributed component interface.
+         */
+        val scope: KClass<*> = Unit::class,
+    )
 }

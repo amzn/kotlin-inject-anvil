@@ -12,7 +12,6 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
-import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
@@ -46,7 +45,6 @@ import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
  * ```
  * package $LOOKUP_PACKAGE
  *
- * @ParentScope
  * @Origin(Subcomponent.Factory::class)
  * @Subcomponent
  * interface SoftwareAmazonTestSubcomponentFactory : Subcomponent.Factory
@@ -66,6 +64,7 @@ internal class ContributesSubcomponentFactoryProcessor(
                 checkIsPublic(it)
                 checkInnerClass(it)
                 checkSingleFunction(it)
+                checkHasScope(it)
             }
             .forEach {
                 generateComponentInterfaceForFactory(it)
@@ -88,14 +87,12 @@ internal class ContributesSubcomponentFactoryProcessor(
 
     private fun generateComponentInterfaceForFactory(factory: KSClassDeclaration) {
         val componentClassName = ClassName(LOOKUP_PACKAGE, factory.safeClassName)
-        val scope = factory.scope()
 
         val fileSpec = FileSpec.builder(componentClassName)
             .addType(
                 TypeSpec
                     .interfaceBuilder(componentClassName)
                     .addOriginatingKSFile(factory.requireContainingFile())
-                    .addAnnotation(scope.toAnnotationSpec())
                     .addOriginAnnotation(factory)
                     .addAnnotation(Subcomponent::class)
                     .addSuperinterface(factory.toClassName())

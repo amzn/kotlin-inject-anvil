@@ -10,7 +10,6 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
-import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
@@ -35,7 +34,6 @@ import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
  * ```
  * package $LOOKUP_PACKAGE
  *
- * @SingleInAppScope
  * @Origin(ComponentInterface::class)
  * interface SoftwareAmazonTestComponentInterface : ComponentInterface
  * ```
@@ -51,6 +49,7 @@ internal class ContributesToProcessor(
             .onEach {
                 checkIsInterface(it)
                 checkIsPublic(it)
+                checkHasScope(it)
             }
             .forEach {
                 generateComponentInterface(it)
@@ -61,14 +60,12 @@ internal class ContributesToProcessor(
 
     private fun generateComponentInterface(clazz: KSClassDeclaration) {
         val componentClassName = ClassName(LOOKUP_PACKAGE, clazz.safeClassName)
-        val scope = clazz.scope()
 
         val fileSpec = FileSpec.builder(componentClassName)
             .addType(
                 TypeSpec
                     .interfaceBuilder(componentClassName)
                     .addOriginatingKSFile(clazz.requireContainingFile())
-                    .addAnnotation(scope.toAnnotationSpec())
                     .addOriginAnnotation(clazz)
                     .addSuperinterface(clazz.toClassName())
                     .build(),

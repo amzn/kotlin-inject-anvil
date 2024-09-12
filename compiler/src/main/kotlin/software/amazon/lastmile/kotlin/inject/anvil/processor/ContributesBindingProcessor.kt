@@ -24,6 +24,8 @@ import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.argumentOfTypeAt
 import software.amazon.lastmile.kotlin.inject.anvil.decapitalize
+import software.amazon.lastmile.kotlin.inject.anvil.requireQualifiedName
+import kotlin.reflect.KClass
 
 /**
  * Generates the code for [ContributesBinding].
@@ -43,7 +45,6 @@ import software.amazon.lastmile.kotlin.inject.anvil.decapitalize
  * ```
  * package $LOOKUP_PACKAGE
  *
- * @SingleInAppScope
  * @Origin(ComponentInterface::class)
  * interface SoftwareAmazonTestRealAuthenticator {
  *     @Provides fun provideRealAuthenticatorAuthenticator(
@@ -65,6 +66,7 @@ internal class ContributesBindingProcessor(
             .filterIsInstance<KSClassDeclaration>()
             .onEach {
                 checkIsPublic(it)
+                checkHasScope(it)
             }
             .forEach {
                 generateComponentInterface(it)
@@ -77,10 +79,8 @@ internal class ContributesBindingProcessor(
     private fun generateComponentInterface(clazz: KSClassDeclaration) {
         val componentClassName = ClassName(LOOKUP_PACKAGE, clazz.safeClassName)
 
-        val annotations = clazz.findAnnotations(ContributesBinding::class)
+        val annotations = clazz.findAnnotationsAtLeastOne(ContributesBinding::class)
         checkNoDuplicateBoundTypes(clazz, annotations)
-
-        val scope = scope(clazz, annotations)
 
         val boundTypes = annotations
             .map {
@@ -96,7 +96,6 @@ internal class ContributesBindingProcessor(
                 TypeSpec
                     .interfaceBuilder(componentClassName)
                     .addOriginatingKSFile(clazz.requireContainingFile())
-                    .addAnnotation(scope.toClassName())
                     .addOriginAnnotation(clazz)
                     .addFunctions(
                         boundTypes.map { function ->
@@ -158,70 +157,6 @@ internal class ContributesBindingProcessor(
             }
     }
 
-    private fun scope(
-        clazz: KSClassDeclaration,
-        annotations: List<KSAnnotation>,
-    ): KSType {
-        val explicitScopes = annotations.mapNotNull { annotation ->
-            annotation.arguments.firstOrNull { it.name?.asString() == "scope" }
-                ?.let { it.value as? KSType }
-                ?.takeIf {
-                    it.declaration.requireQualifiedName() !=
-                        Annotation::class.requireQualifiedName()
-                }
-        }
-
-        val classScope = clazz.scopeOrNull()?.annotationType?.resolve()
-
-        if (explicitScopes.isNotEmpty()) {
-            check(explicitScopes.size == annotations.size, clazz) {
-                "If one @ContributesBinding annotation has an explicit scope, then all " +
-                    "annotations must specify an explicit scope."
-            }
-
-            explicitScopes.scan(
-                explicitScopes.first().declaration.requireQualifiedName(),
-            ) { previous, next ->
-                check(previous == next.declaration.requireQualifiedName(), clazz) {
-                    "All explicit scopes on @ContributesBinding annotations must be the same."
-                }
-                previous
-            }
-
-            val explicitScope = explicitScopes.first()
-
-            if (classScope != null) {
-                check(
-                    classScope.declaration.requireQualifiedName() ==
-                        explicitScope.declaration.requireQualifiedName(),
-                    clazz,
-                ) {
-                    "A scope was defined explicitly on the @ContributesBinding annotation " +
-                        "`${explicitScope.declaration.requireQualifiedName()}` and the class " +
-                        "itself is scoped using " +
-                        "`${classScope.declaration.requireQualifiedName()}`. It's not allowed " +
-                        "to mix different scopes."
-                }
-            }
-
-            check(classScope == null, clazz) {
-                "A scope was defined explicitly on the @ContributesBinding annotation " +
-                    "`${explicitScope.declaration.requireQualifiedName()}` and the class itself " +
-                    "is scoped using `${classScope!!.declaration.requireQualifiedName()}`. In " +
-                    "this case the explicit scope on the @ContributesBinding annotation can be " +
-                    "removed."
-            }
-
-            return explicitScope
-        }
-
-        return requireNotNull(classScope, clazz) {
-            "Couldn't find scope for ${clazz.simpleName.asString()}. For unscoped " +
-                "objects it is required to specify the target scope on the @ContributesBinding " +
-                "annotation."
-        }
-    }
-
     private fun boundTypeFromAnnotation(annotation: KSAnnotation): KSType? {
         return annotation.arguments.firstOrNull { it.name?.asString() == "boundType" }
             ?.let { it.value as? KSType }
@@ -262,6 +197,16 @@ internal class ContributesBindingProcessor(
                     "."
                 logger.error(message, clazz)
                 throw IllegalArgumentException(message)
+            }
+        }
+    }
+
+    private fun KSClassDeclaration.findAnnotationsAtLeastOne(
+        annotation: KClass<out Annotation>,
+    ): List<KSAnnotation> {
+        return findAnnotations(annotation).also {
+            check(it.isNotEmpty(), this) {
+                "Couldn't find the @${annotation.simpleName} annotation for $this."
             }
         }
     }

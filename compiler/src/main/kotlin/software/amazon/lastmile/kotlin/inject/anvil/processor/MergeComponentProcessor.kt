@@ -16,7 +16,6 @@ import com.google.devtools.ksp.symbol.KSType
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
@@ -28,6 +27,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
 import software.amazon.lastmile.kotlin.inject.anvil.OPTION_CONTRIBUTING_ANNOTATIONS
 import software.amazon.lastmile.kotlin.inject.anvil.extend.ContributingAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
+import software.amazon.lastmile.kotlin.inject.anvil.requireQualifiedName
 
 /**
  * Generates the code for [MergeComponent].
@@ -151,8 +151,11 @@ internal class MergeComponentProcessor(
 
         val componentInterfaces = resolver.getDeclarationsFromPackage(LOOKUP_PACKAGE)
             .filterIsInstance<KSClassDeclaration>()
-            .filter { it.scope().isSameAs(scope) }
-            .filter { it.origin().requireQualifiedName() !in excludeNames }
+            .filter { contributedInterface ->
+                val origin = contributedInterface.origin()
+                origin.scope() == scope &&
+                    origin.requireQualifiedName() !in excludeNames
+            }
             .filter {
                 !it.isAnnotationPresent(Subcomponent::class) ||
                     it.contributedSubcomponent().requireQualifiedName() !in excludeNames
@@ -168,7 +171,6 @@ internal class MergeComponentProcessor(
             .addType(
                 TypeSpec
                     .interfaceBuilder(className)
-                    .addAnnotation(scope.toAnnotationSpec())
                     .addSuperinterfaces(
                         generatedSubcomponents + componentInterfaces.map { it.toClassName() },
                     )

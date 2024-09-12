@@ -9,16 +9,20 @@ public abstract interface annotation class software/amazon/lastmile/kotlin/injec
 }
 
 public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent : java/lang/annotation/Annotation {
+	public abstract fun scope ()Ljava/lang/Class;
 }
 
 public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent$Factory : java/lang/annotation/Annotation {
+	public abstract fun scope ()Ljava/lang/Class;
 }
 
 public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ContributesTo : java/lang/annotation/Annotation {
+	public abstract fun scope ()Ljava/lang/Class;
 }
 
 public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/MergeComponent : java/lang/annotation/Annotation {
 	public abstract fun exclude ()[Ljava/lang/Class;
+	public abstract fun scope ()Ljava/lang/Class;
 }
 
 public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/extend/ContributingAnnotation : java/lang/annotation/Annotation {

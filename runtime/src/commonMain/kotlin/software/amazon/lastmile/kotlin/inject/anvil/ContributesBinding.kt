@@ -82,7 +82,7 @@ public annotation class ContributesBinding(
     /**
      * The scope in which to include this contributed binding.
      */
-    val scope: KClass<out Annotation> = Annotation::class,
+    val scope: KClass<*> = Unit::class,
     /**
      * The type that this class is bound to. When injecting [boundType] the concrete class will be
      * this annotated class.
