@@ -27,6 +27,7 @@ auto-service-annotations = { module = "com.google.auto.service:auto-service-anno
 auto-service-ksp = { module = "dev.zacsweers.autoservice:auto-service-ksp", version.ref = "auto-service-ksp" }
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 graphviz-java = { module = "guru.nidi:graphviz-java", version = "0.18.1" }
+javax-inject = { group = "javax.inject", name = "javax.inject", version = "1" }
 junit-jupiter-bom = { module = "org.junit:junit-bom", version.ref = "junit-jupiter" }
 junit-jupiter-core = { module = "org.junit.jupiter:junit-jupiter" }
 junit-jupiter-launcher = { module = "org.junit.platform:junit-platform-launcher" }

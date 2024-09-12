@@ -41,6 +41,9 @@ The project comes with a KSP plugin and a runtime module:
 dependencies {
     kspCommonMainMetadata "software.amazon.lastmile.kotlin.inject.anvil:compiler:$version"
     commonMainImplementation "software.amazon.lastmile.kotlin.inject.anvil:runtime:$version"
+
+    // Optional module for scope and qualifier annotations.
+    commonMainImplementation "software.amazon.lastmile.kotlin.inject.anvil:runtime-optional:$version"
 }
 ```
 For details how to setup KSP itself for multiplatform projects see the

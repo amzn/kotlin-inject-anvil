@@ -20,7 +20,9 @@ open class LibraryKmpPlugin : Plugin<Project> {
         target.plugins.apply(target.libs.findPlugin("kotlin.multiplatform").get().get().pluginId)
         target.plugins.apply(KotlinPlugin::class.java)
         target.configureExplicitApi()
+        target.enableExpectActualClasses()
         target.configureKmp()
+        target.addExtraSourceSets()
 
         target.plugins.apply(PublishingPlugin::class.java)
 
@@ -29,6 +31,14 @@ open class LibraryKmpPlugin : Plugin<Project> {
 
     private fun Project.configureExplicitApi() {
         kotlin.explicitApi()
+    }
+
+    private fun Project.enableExpectActualClasses() {
+        kotlin.targets.configureEach { target ->
+            target.compilations.configureEach { compilation ->
+                compilation.compilerOptions.options.freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
+        }
     }
 
     @Suppress("OPT_IN_USAGE")
@@ -52,8 +62,6 @@ open class LibraryKmpPlugin : Plugin<Project> {
             macosArm64()
             macosX64()
 
-            mingwX64()
-
             tvosArm64()
             tvosSimulatorArm64()
             tvosX64()
@@ -68,6 +76,33 @@ open class LibraryKmpPlugin : Plugin<Project> {
             watchosX64()
 
             applyDefaultHierarchyTemplate()
+        }
+    }
+
+    private fun Project.addExtraSourceSets() {
+        val commonMain = kotlin.sourceSets.getByName("commonMain")
+
+        val jvmAndAndroid = kotlin.sourceSets.create("jvmAndAndroid")
+        jvmAndAndroid.dependsOn(commonMain)
+
+        kotlin.sourceSets.named("jvmMain").configure {
+            it.dependsOn(jvmAndAndroid)
+        }
+        kotlin.sourceSets.named("androidMain").configure {
+            it.dependsOn(jvmAndAndroid)
+        }
+
+        val nonJvmAndAndroid = kotlin.sourceSets.create("nonJvmAndAndroid")
+        nonJvmAndAndroid.dependsOn(commonMain)
+
+        kotlin.sourceSets.named("nativeMain").configure {
+            it.dependsOn(nonJvmAndAndroid)
+        }
+        kotlin.sourceSets.named("jsMain").configure {
+            it.dependsOn(nonJvmAndAndroid)
+        }
+        kotlin.sourceSets.named("wasmJsMain").configure {
+            it.dependsOn(nonJvmAndAndroid)
         }
     }
 
