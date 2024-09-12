@@ -20,5 +20,6 @@ dependencies {
     kspIosSimulatorArm64 project(':compiler')
 
     commonMainImplementation project(':runtime')
+    commonMainImplementation project(':runtime-optional')
     commonMainImplementation libs.kotlin.inject.runtime
 }
