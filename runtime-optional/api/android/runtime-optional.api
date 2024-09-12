@@ -1,3 +1,7 @@
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/ForScope : java/lang/annotation/Annotation {
+	public abstract fun scope ()Ljava/lang/Class;
+}
+
 public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/SingleIn : java/lang/annotation/Annotation {
 	public abstract fun scope ()Ljava/lang/Class;
 }
