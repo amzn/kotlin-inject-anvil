@@ -1,0 +1,9 @@
+plugins {
+    id 'software.amazon.lib.kmp'
+}
+
+dependencies {
+    commonMainImplementation libs.kotlin.inject.runtime
+
+    jvmAndAndroidCompileOnly libs.javax.inject
+}

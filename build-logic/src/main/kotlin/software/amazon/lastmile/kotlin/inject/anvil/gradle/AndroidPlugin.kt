@@ -17,7 +17,8 @@ internal class AndroidPlugin : Plugin<Project> {
             val android = extensions.getByType(BaseExtension::class.java)
 
             android.namespace =
-                "software.amazon.lastmile.kotlin.inject.anvil${path.replace(':', '.')}"
+                "software.amazon.lastmile.kotlin.inject.anvil" +
+                path.replace(':', '.').replace('-', '.')
             android.compileSdkVersion(
                 libs.findVersion("android.compileSdk").get().requiredVersion.toInt(),
             )

@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added a default scope annotation `@SingleIn`.
 - Allow specifying custom contributing annotations via KSP option instead of using `@ContributingAnnotation`.
 
 ### Changed
@@ -11,6 +12,8 @@
 ### Deprecated
 
 ### Removed
+
+- Removed `mingwX64()` target, because `kotlin-inject` doesn't support it.
 
 ### Fixed
 

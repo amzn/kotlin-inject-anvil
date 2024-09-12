@@ -1,0 +1,4 @@
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/defaults/SingleIn : java/lang/annotation/Annotation {
+	public abstract fun scope ()Ljava/lang/Class;
+}
+
