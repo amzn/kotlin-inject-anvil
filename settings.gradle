@@ -2,6 +2,16 @@ pluginManagement {
     // Include the build-logic project first, otherwise the settings plugin from BunnyAndroidApi will mess with the classpath of build-logic
     // and break composite builds for it.
     includeBuild('build-logic')
+
+    repositories {
+        mavenCentral()
+        google()
+        gradlePluginPortal()
+
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
 }
 
 rootProject.name = 'kotlin-inject-anvil'
