@@ -19,3 +19,5 @@ open annotation class software.amazon.lastmile.kotlin.inject.anvil/SingleIn : ko
     final val scope // software.amazon.lastmile.kotlin.inject.anvil/SingleIn.scope|{}scope[0]
         final fun <get-scope>(): kotlin.reflect/KClass<*> // software.amazon.lastmile.kotlin.inject.anvil/SingleIn.scope.<get-scope>|<get-scope>(){}[0]
 }
+
+abstract class software.amazon.lastmile.kotlin.inject.anvil/AppScope // software.amazon.lastmile.kotlin.inject.anvil/AppScope|null[0]
