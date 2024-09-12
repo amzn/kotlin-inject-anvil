@@ -14,8 +14,8 @@ import kotlin.reflect.KClass
  *   :lib-a   :lib-b
  * ```
  * `:app` creates the component with `@MergeComponent`, `:lib-a` creates a subcomponent with its
- * own `@Component` and `@MergeComponent` and `:lib-b` contributes a module to the scope of the
- * subcomponent. This module won't be included in the subcomponent without adding the dependency
+ * own `@Component` and `@MergeComponent` and `:lib-b` contributes a component to the scope of the
+ * subcomponent. This component won't be included in the subcomponent without adding the dependency
  * `:lib-a -> :lib-b`.
  *
  * On the other hand, if `:lib-a` uses `@ContributesSubcomponent` with a parent scope of the main
@@ -23,49 +23,50 @@ import kotlin.reflect.KClass
  * the contributed module from `:lib-b` will be picked up.
  *
  * ```
- * @ContributesSubcomponent
- * @SingleInRendererScope
- * interface RendererComponent {
+ * @ContributesSubcomponent(LoggedInScope::class)
+ * @SingleIn(LoggedInScope::class)
+ * interface LoggedInComponent {
  *
- *     @ContributesSubcomponent.Factory
- *     @SingleInAppScope
+ *     @ContributesSubcomponent.Factory(AppScope::class)
  *     interface Factory {
- *         fun createRendererComponent(): RendererComponent
+ *         fun createLoggedInComponent(): LoggedInComponent
  *     }
  * }
  * ```
  * This is the typical setup. The `Factory` interface will be implemented by the parent scope
- * `@SingleInAppScope` and the final `RendererComponent` will be generated when `@MergeComponent`
+ * `AppScope::class` and the final `LoggedInComponent` will be generated when `@MergeComponent`
  * is used, e.g. this would trigger generating the subcomponent.
  * ```
- * @SingleInAppScope
- * @MergeComponent
  * @Component
+ * @MergeComponent(AppScope::class)
+ * @SingleIn(AppScope::class)
  * abstract class AppComponent : AppComponentMerged
  * ```
  * The generated code for the subcomponent would look like:
  * ```
  * // Implements the body of the factory function.
- * interface AppComponentMerged : RendererComponent.Factory {
- *     override fun createRendererComponent(): RendererComponent {
- *         return RendererComponentFinal.create(this)
+ * interface AppComponentMerged : LoggedInComponent.Factory {
+ *     override fun createLoggedInComponent(): LoggedInComponent {
+ *         return LoggedInComponentFinal.create(this)
  *     }
  * }
  *
- * @SingleInRendererScope
- * @MergeComponent
  * @Component
- * abstract class RendererComponentFinal(
+ * @MergeComponent(LoggedInScope::class)
+ * @SingleIn(LoggedInScope::class)
+ * abstract class LoggedInComponentFinal(
  *     @Component val parentComponent: AppComponent
- * ) : RendererComponent, RendererComponentMerged
+ * ) : LoggedInComponent, LoggedInComponentMerged
  * ```
  *
  * A chain of [ContributesSubcomponent]s is supported.
  *
+ * ## Component arguments
+ *
  * Parameters on the factory function are forwarded to the generated component and bound in the
  * component, e.g.
  * ```
- * @ContributesSubcomponent.Factory
+ * @ContributesSubcomponent.Factory(AppScope::class)
  * interface Factory {
  *     fun createComponent(string: String, int: Int): ChildComponent
  * }
@@ -88,16 +89,33 @@ import kotlin.reflect.KClass
  * ```
  * // Remove the parameter and convert the class to an interface. The parameter will be
  * // generated due to the Factory having this parameter.
- * @ContributesSubcomponent
- * @SingleInRendererScope
- * abstract class RendererComponent(
+ * @ContributesSubcomponent(LoggedInScope::class)
+ * @SingleIn(LoggedInScope::class)
+ * abstract class LoggedInComponent(
  *     @get:Provides val string: String,
  * ) {
  *
- *     @ContributesSubcomponent.Factory
- *     @SingleInAppScope
+ *     @ContributesSubcomponent.Factory(AppScope::class)
  *     interface Factory {
- *         fun createRendererComponent(string: String): RendererComponent
+ *         fun createLoggedInComponent(string: String): LoggedInComponent
+ *     }
+ * }
+ * ```
+ *
+ *
+ * ## Custom scopes
+ *
+ * If you use your own scope annotations without the references such as `AppScope::class`, then
+ * you can use your scope directly on the class:
+ * ```
+ * @ContributesSubcomponent
+ * @LoggedInScope
+ * interface LoggedInComponent {
+ *
+ *     @ContributesSubcomponent.Factory
+ *     @Singleton
+ *     interface Factory {
+ *         fun createLoggedInComponent(): LoggedInComponent
  *     }
  * }
  * ```

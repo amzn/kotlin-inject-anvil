@@ -26,8 +26,8 @@ import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
  * ```
  * package software.amazon.test
  *
- * @ContributesTo
- * @SingleInAppScope
+ * @ContributesTo(AppScope::class)
+ * @SingleIn(AppScope::class)
  * interface ComponentInterface
  * ```
  * Will generate:

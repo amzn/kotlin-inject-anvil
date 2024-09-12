@@ -10,11 +10,10 @@ import kotlin.reflect.KClass
  * interface Authenticator
  *
  * @Inject
- * @SingleInAppScope
+ * @SingleIn(AppScope::class)
  * class RealAuthenticator : Authenticator {
  *
- *     @ContributesTo
- *     @SingleInAppScope
+ *     @ContributesTo(AppScope::class)
  *     interface Component {
  *         @Provides fun provideAuthenticator(authenticator: RealAuthenticator): Authenticator =
  *             authenticator
@@ -29,38 +28,28 @@ import kotlin.reflect.KClass
  * interface Authenticator
  *
  * @Inject
- * @SingleInAppScope
- * @ContributesBinding
+ * @SingleIn(AppScope::class)
+ * @ContributesBinding(AppScope::class)
  * class RealAuthenticator : Authenticator
  * ```
  * Notice that it's optional to specify [boundType], if there is only exactly one super type. If
  * there are multiple super types, then it's required to specify the parameter:
  * ```
  * @Inject
- * @SingleInAppScope
+ * @SingleIn(AppScope::class)
  * @ContributesBinding(
+ *     scope = AppScope::class,
  *     boundType = Authenticator::class,
  * )
  * class RealAuthenticator : AbstractTokenProvider(), Authenticator
  * ```
  *
- * The generated component interface will automatically be associated with the scope of the
- * contributed binding. If the class is unscoped (not a singleton), then the target scope must be
- * specified in the `@ContributesTo` annotation:
- * ```
- * @Inject
- * @ContributesBinding(
- *     scope = SingleInAppScope::class,
- * )
- * class CounterPresenterImpl : CounterPresenter
- * ```
- *
  * This annotation is repeatable and a binding can be generated for multiple types:
  * ```
  * @Inject
- * @SingleInAppScope
- * @ContributesBinding(boundType = Authenticator::class)
- * @ContributesBinding(boundType = AbstractTokenProvider::class)
+ * @SingleIn(AppScope::class)
+ * @ContributesBinding(AppScope::class, boundType = Authenticator::class)
+ * @ContributesBinding(AppScope::class, boundType = AbstractTokenProvider::class)
  * class RealAuthenticator : AbstractTokenProvider(), Authenticator
  * ```
  *
@@ -71,9 +60,22 @@ import kotlin.reflect.KClass
  *
  * ```
  * @Inject
- * @ContributesBinding(boundType = Base::class)
- * @ContributesBinding(boundType = Base2::class, multibinding = true)
+ * @ContributesBinding(AppScope::class, boundType = Base::class)
+ * @ContributesBinding(AppScope::class, boundType = Base2::class, multibinding = true)
  * class Impl : Base, Base2
+ * ```
+ *
+ * ## Custom scopes
+ *
+ * If you use your own scope annotations without the references such as `AppScope::class`, then
+ * you can use your scope directly on the class:
+ * ```
+ * interface Authenticator
+ *
+ * @Inject
+ * @Singleton
+ * @ContributesBinding
+ * class RealAuthenticator : Authenticator
  * ```
  */
 @Target(CLASS)

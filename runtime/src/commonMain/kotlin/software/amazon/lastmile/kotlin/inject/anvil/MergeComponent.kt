@@ -9,8 +9,8 @@ import kotlin.reflect.KClass
  *
  * ```
  * @Component
- * @MergeComponent
- * @SingleInAppScope
+ * @MergeComponent(AppScope::class)
+ * @SingleIn(AppScope::class)
  * abstract class AppComponent(
  *     ...
  * ) : AppComponentMerged
@@ -23,12 +23,27 @@ import kotlin.reflect.KClass
  *
  * ```
  * @MergeComponent(
+ *     scope = AppScope::class,
  *     exclude = [
  *       ComponentInterface::class,
  *       Other.Component::class,
  *     ]
  * )
  * interface AppComponent
+ * ```
+ *
+ *
+ * ## Custom scopes
+ *
+ * If you use your own scope annotations without the references such as `AppScope::class`, then
+ * you can use your scope directly on the class:
+ * ```
+ * @Component
+ * @MergeComponent
+ * @Singleton
+ * abstract class AppComponent(
+ *     ...
+ * ) : AppComponentMerged
  * ```
  */
 @Target(CLASS)

@@ -27,7 +27,7 @@ class ContributesToProcessorTest {
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
             @ContributesTo
-            @SingleInAppScope
+            @Singleton
             interface ComponentInterface
             """,
         ) {
@@ -71,7 +71,7 @@ class ContributesToProcessorTest {
 
             interface ComponentInterface {
                 @ContributesTo
-                @SingleInAppScope
+                @Singleton
                 interface Inner
             }
             """,
@@ -93,7 +93,7 @@ class ContributesToProcessorTest {
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
             @ContributesTo
-            @SingleInAppScope
+            @Singleton
             private interface ComponentInterface
             """,
             exitCode = COMPILATION_ERROR,
@@ -111,7 +111,7 @@ class ContributesToProcessorTest {
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
             @ContributesTo
-            @SingleInAppScope
+            @Singleton
             abstract class ComponentInterface
             """,
             exitCode = COMPILATION_ERROR,

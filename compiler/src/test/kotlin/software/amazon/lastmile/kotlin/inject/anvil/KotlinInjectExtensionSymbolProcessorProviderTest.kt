@@ -28,7 +28,7 @@ class KotlinInjectExtensionSymbolProcessorProviderTest {
                 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
     
                 @ContributesTo
-                @SingleInAppScope
+                @Singleton
                 interface ComponentInterface
                 """,
             )

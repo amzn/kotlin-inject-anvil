@@ -28,7 +28,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.OPTION_CONTRIBUTING_ANNOTATI
 import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.mergedComponent
-import software.amazon.test.SingleInAppScope
+import software.amazon.test.Singleton
 
 private const val CONTRIBUTING_ANNOTATION =
     "software.amazon.lastmile.kotlin.inject.anvil.extend.ContributingAnnotation"
@@ -75,7 +75,7 @@ class CustomSymbolProcessorTest {
     
                 @Component
                 @MergeComponent
-                @SingleInAppScope
+                @Singleton
                 interface ComponentInterface : ComponentInterfaceMerged {
                     val string: String
                 }
@@ -138,7 +138,7 @@ class CustomSymbolProcessorTest {
     
                 @Component
                 @MergeComponent
-                @SingleInAppScope
+                @Singleton
                 interface ComponentInterface : ComponentInterfaceMerged {
                     val string: String
                 }
@@ -168,7 +168,7 @@ class CustomSymbolProcessorTest {
                                         .interfaceBuilder(componentClassName)
                                         .addOriginatingKSFile(clazz.containingFile!!)
                                         .addAnnotation(ContributesTo::class)
-                                        .addAnnotation(SingleInAppScope::class)
+                                        .addAnnotation(Singleton::class)
                                         .addFunction(
                                             FunSpec
                                                 .builder("provideString")

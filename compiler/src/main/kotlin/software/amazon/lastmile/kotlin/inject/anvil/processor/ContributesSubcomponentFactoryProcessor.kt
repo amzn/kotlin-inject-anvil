@@ -31,11 +31,10 @@ import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
  * ```
  * package software.amazon.test
  *
- * @ContributesSubcomponent
- * @ChildScope
+ * @ContributesSubcomponent(LoggedInScope::class)
+ * @SingleIn(AppScope::class)
  * interface Subcomponent {
- *     @ContributesSubcomponent.Factory
- *     @ParentScope
+ *     @ContributesSubcomponent.Factory(AppScope::class)
  *     interface Factory {
  *         fun createSubcomponent(): Subcomponent
  *     }
