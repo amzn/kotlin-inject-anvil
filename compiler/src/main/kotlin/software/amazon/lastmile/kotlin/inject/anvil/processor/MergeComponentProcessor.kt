@@ -25,6 +25,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+import software.amazon.lastmile.kotlin.inject.anvil.OPTION_CONTRIBUTING_ANNOTATIONS
 import software.amazon.lastmile.kotlin.inject.anvil.extend.ContributingAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
 
@@ -55,7 +56,29 @@ internal class MergeComponentProcessor(
     private val codeGenerator: CodeGenerator,
     override val logger: KSPLogger,
     private val contributesSubcomponentProcessor: ContributesSubcomponentProcessor,
+    options: Map<String, String>,
 ) : SymbolProcessor, ContextAware {
+
+    private val defaultContributingAnnotations = buildSet {
+        addAll(
+            sequenceOf(
+                ContributesTo::class,
+                ContributesBinding::class,
+                ContributesSubcomponent::class,
+                ContributesSubcomponent.Factory::class,
+                ContributingAnnotation::class,
+            )
+                .map { it.requireQualifiedName() },
+        )
+
+        options[OPTION_CONTRIBUTING_ANNOTATIONS]?.let {
+            addAll(
+                it.splitToSequence(':')
+                    .map { it.trim() }
+                    .filterNot { it.isBlank() },
+            )
+        }
+    }
 
     private val processedComponents = mutableSetOf<String>()
 
@@ -80,14 +103,8 @@ internal class MergeComponentProcessor(
             return emptyList()
         }
 
-        val contributingAnnotations = sequenceOf(
-            ContributesTo::class,
-            ContributesBinding::class,
-            ContributesSubcomponent::class,
-            ContributesSubcomponent.Factory::class,
-            ContributingAnnotation::class,
-        )
-            .map { it.requireQualifiedName() }
+        val contributingAnnotations = defaultContributingAnnotations
+            .asSequence()
             .plus(
                 resolver.getDeclarationsFromPackage(LOOKUP_PACKAGE)
                     .filterIsInstance<KSPropertyDeclaration>()
@@ -103,6 +120,7 @@ internal class MergeComponentProcessor(
                     }
                     .map { it.requireQualifiedName() },
             )
+            .distinct() // Save duplicate lookups
 
         // We will generate more component interfaces in our look up package in this round. Wait
         // for the next round before merging.
@@ -173,9 +191,11 @@ internal class MergeComponentProcessor(
         resolver: Resolver,
         contributingAnnotations: Sequence<String>,
     ): Boolean {
-        return contributingAnnotations.flatMap {
-            resolver.getNewSymbolsWithAnnotation(it)
-        }.any { true }
+        return contributingAnnotations
+            .flatMap {
+                resolver.getNewSymbolsWithAnnotation(it)
+            }
+            .any()
     }
 
     private fun Resolver.getNewSymbolsWithAnnotation(annotation: String): Sequence<KSAnnotated> {

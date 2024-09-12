@@ -4,6 +4,8 @@
 
 ### Added
 
+- Allow specifying custom contributing annotations via KSP option instead of using `@ContributingAnnotation`.
+
 ### Changed
 
 ### Deprecated
