@@ -4,7 +4,10 @@ import kotlinx.validation.ApiValidationExtension
 import kotlinx.validation.ExperimentalBCVApi
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompilerOptions
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinNativeCompilerOptions
 
 open class LibraryKmpPlugin : Plugin<Project> {
 
@@ -43,6 +46,12 @@ open class LibraryKmpPlugin : Plugin<Project> {
 
     @Suppress("OPT_IN_USAGE")
     private fun Project.configureKmp() {
+        // Note this doesn't work on JS/WASMJS yet due to
+        // https://youtrack.jetbrains.com/issue/KT-71362
+        val uniqueModuleName =
+            project.findProperty("POM_ARTIFACT_ID")?.toString()?.let { artifactId ->
+                "kotlin-inject-anvil-$artifactId"
+            }
         with(kotlin) {
             androidTarget()
 
@@ -51,6 +60,7 @@ open class LibraryKmpPlugin : Plugin<Project> {
             iosX64()
 
             js {
+                moduleName = uniqueModuleName
                 browser()
             }
 
@@ -67,6 +77,7 @@ open class LibraryKmpPlugin : Plugin<Project> {
             tvosX64()
 
             wasmJs {
+                moduleName = uniqueModuleName
                 browser()
             }
 
@@ -76,6 +87,32 @@ open class LibraryKmpPlugin : Plugin<Project> {
             watchosX64()
 
             applyDefaultHierarchyTemplate()
+        }
+
+        // Ensure a unique module name for each published artifact
+        uniqueModuleName?.let { moduleName ->
+            kotlin.targets.configureEach { target ->
+                target.compilations.configureEach { compilation ->
+                    compilation
+                        .compilerOptions
+                        .options
+                        .let {
+                            when (it) {
+                                is KotlinNativeCompilerOptions -> {
+                                    it.moduleName.set(moduleName)
+                                }
+
+                                is KotlinJvmCompilerOptions -> {
+                                    it.moduleName.set(moduleName)
+                                }
+
+                                is KotlinJsCompilerOptions -> {
+                                    it.moduleName.set(moduleName)
+                                }
+                            }
+                        }
+                }
+            }
         }
     }
 
@@ -111,7 +148,8 @@ open class LibraryKmpPlugin : Plugin<Project> {
         plugins.apply(libs.findPlugin("kotlinx.binaryCompatibilityValidator").get().get().pluginId)
 
         with(extensions.getByType(ApiValidationExtension::class.java)) {
-            klib.enabled = true
+            // TODO revisit enabling after https://youtrack.jetbrains.com/issue/KT-71362 is fixed
+            klib.enabled = false
         }
     }
 }
