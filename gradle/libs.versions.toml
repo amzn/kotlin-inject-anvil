@@ -11,8 +11,9 @@ kotlin = "1.9.24"
 kotlin-compile-testing = "0.4.1"
 kotlin-hierarchy = "1.1"
 kotlin-inject = "0.7.1"
-# This is a snapshot build with the latest fixes. We need that in the sample app.
-kotlin-inject-bugfix = "0.7.2-20240710.214910-9"
+# This is a build with the latest fixes. We need that in the sample app. 0.7.2 depends on
+# Kotlin 2.0, and we can't do the upgrade yet.
+kotlin-inject-bugfix = "0.7.2"
 kotlin-poet = "1.17.0"
 kotlinx-binaryCompatibilityValidator = "0.16.2"
 ksp = "1.9.24-1.0.20"
