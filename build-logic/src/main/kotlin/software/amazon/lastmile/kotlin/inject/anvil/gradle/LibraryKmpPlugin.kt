@@ -50,7 +50,7 @@ open class LibraryKmpPlugin : Plugin<Project> {
         // https://youtrack.jetbrains.com/issue/KT-71362
         val uniqueModuleName =
             project.findProperty("POM_ARTIFACT_ID")?.toString()?.let { artifactId ->
-                "kotlin-inject-anvil-${artifactId}"
+                "kotlin-inject-anvil-$artifactId"
             }
         with(kotlin) {
             androidTarget()
