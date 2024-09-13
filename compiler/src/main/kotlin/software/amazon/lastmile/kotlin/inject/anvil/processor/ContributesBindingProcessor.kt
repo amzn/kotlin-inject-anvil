@@ -37,7 +37,7 @@ import kotlin.reflect.KClass
  * package software.amazon.test
  *
  * @Inject
- * @SingleInAppScope
+ * @SingleIn(AppScope::class)
  * @ContributesBinding
  * class RealAuthenticator : Authenticator
  * ```
@@ -45,7 +45,7 @@ import kotlin.reflect.KClass
  * ```
  * package $LOOKUP_PACKAGE
  *
- * @Origin(ComponentInterface::class)
+ * @Origin(RealAuthenticator::class)
  * interface SoftwareAmazonTestRealAuthenticator {
  *     @Provides fun provideRealAuthenticatorAuthenticator(
  *         realAuthenticator: RealAuthenticator

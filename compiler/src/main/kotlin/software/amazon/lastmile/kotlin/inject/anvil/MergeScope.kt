@@ -22,12 +22,12 @@ import com.squareup.kotlinpoet.ksp.toClassName
  * Or the old way:
  * ```
  * @ContributesTo
- * @SingleInAppScope
+ * @Singleton
  * interface ContributedComponentInterface
  *
  * @Component
  * @MergeComponent
- * @SingleInAppScope
+ * @Singleton
  * interface MergedComponent
  * ```
  */
@@ -36,7 +36,7 @@ internal sealed class MergeScope {
      * The fully qualified name of the annotation used as scope, e.g.
      * ```
      * @ContributesTo
-     * @SingleInAppScope
+     * @Singleton
      * interface Abc
      * ```
      * Note that the annotation itself is annotated with `@Scope`.
@@ -50,7 +50,7 @@ internal sealed class MergeScope {
      * If the `scope` parameter is used and the argument is annotated with `@Scope`, then
      * this value is non-null, e.g. for this:
      * ```
-     * @ContributesBinding(scope = SingleInAppScope::class)
+     * @ContributesBinding(scope = Singleton::class)
      * class Binding : SuperType
      * ```
      */
@@ -66,14 +66,14 @@ internal sealed class MergeScope {
      * The value is null, if no marker is used, e.g.
      * ```
      * @ContributesTo
-     * @SingleInAppScope
+     * @Singleton
      * interface Abc
      * ```
      *
      * The value is also null, when the `scope` parameter is used and the argument is annotated
      * with `@Scope`, e.g.
      * ```
-     * @ContributesBinding(scope = SingleInAppScope::class)
+     * @ContributesBinding(scope = Singleton::class)
      * class Binding : SuperType
      * ```
      */

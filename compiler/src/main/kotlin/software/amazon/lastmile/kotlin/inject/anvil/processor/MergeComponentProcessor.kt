@@ -40,15 +40,14 @@ import software.amazon.lastmile.kotlin.inject.anvil.requireQualifiedName
  * package software.amazon.test
  *
  * @Component
- * @MergeComponent
- * @SingleInAppScope
+ * @MergeComponent(AppScope::class)
+ * @SingleIn(AppScope::class)
  * abstract class TestComponent : TestComponentMerged
  * ```
  * Will generate:
  * ```
  * package software.amazon.test
  *
- * @SingleInAppScope
  * interface TestComponentMerged : MergedSuperTypes
  * ```
  */

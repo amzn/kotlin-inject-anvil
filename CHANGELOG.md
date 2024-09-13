@@ -4,10 +4,13 @@
 
 ### Added
 
-- Added a default scope annotation `@SingleIn`.
+- Added new artifact `:runtime-optional`, which provides access to `@SingleIn`, `@ForScope` and `AppScope`, see #16.
+- Added support for scopes with parameters, e.g. to support `@SingleIn(AppScope::class)` and `@ContributesTo(AppScope::class)`, see #1.
 - Allow specifying custom contributing annotations via KSP option instead of using `@ContributingAnnotation`.
 
 ### Changed
+
+- Updated the documentation and decided to recommend scope references as parameter to contribute and merge types. In other words: we prefer using the `@SingleIn(SomeScope::class)` annotation and explicitly declaring the scope on the `@Contribute*(SomeScope::class)` annotations. Support for the old way may go away, see #36.
 
 ### Deprecated
 
@@ -18,8 +21,6 @@
 ### Fixed
 
 ### Security
-
-### Custom Code Generator
 
 ### Other Notes & Contributions
 

@@ -35,7 +35,7 @@ class ContributesBindingProcessorTest {
             interface Base
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding
             class Impl : Base 
             """,
@@ -66,7 +66,7 @@ class ContributesBindingProcessorTest {
 
             interface Impl {
                 @Inject
-                @SingleInAppScope
+                @Singleton
                 @ContributesBinding
                 class Inner : Base
             } 
@@ -98,12 +98,12 @@ class ContributesBindingProcessorTest {
             interface Base2 : Base
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding(boundType = Base::class)
             class Impl : Base2 
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding
             class Impl2 : Base2 
             """,
@@ -125,7 +125,7 @@ class ContributesBindingProcessorTest {
             import me.tatarka.inject.annotations.Inject
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding
             class Impl 
             """,
@@ -150,7 +150,7 @@ class ContributesBindingProcessorTest {
             interface Base2
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding
             class Impl : Base, Base2
             """,
@@ -175,7 +175,7 @@ class ContributesBindingProcessorTest {
             interface Base
 
             @Inject
-            @ContributesBinding(scope = SingleInAppScope::class)
+            @ContributesBinding(scope = Singleton::class)
             class Impl : Base 
             """,
         ) {
@@ -223,7 +223,7 @@ class ContributesBindingProcessorTest {
             interface Base2
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding(boundType = Base::class)
             @ContributesBinding(boundType = Base2::class)
             class Impl : Base, Base2 
@@ -261,7 +261,7 @@ class ContributesBindingProcessorTest {
             interface Base2
 
             @Inject
-            @ContributesBinding(scope = SingleInAppScope::class, boundType = Base::class)
+            @ContributesBinding(scope = Singleton::class, boundType = Base::class)
             @ContributesBinding(scope = OtherScope::class, boundType = Base2::class)
             class Impl : Base, Base2 
             """,
@@ -288,7 +288,7 @@ class ContributesBindingProcessorTest {
 
             @Inject
             @OtherScope
-            @ContributesBinding(scope = SingleInAppScope::class, boundType = Base::class)
+            @ContributesBinding(scope = Singleton::class, boundType = Base::class)
             @ContributesBinding(boundType = Base2::class)
             class Impl : Base, Base2 
             """,
@@ -315,7 +315,7 @@ class ContributesBindingProcessorTest {
             interface Base
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding(boundType = Base::class)
             @ContributesBinding(boundType = Base::class)
             class Impl : Base, Base2 
@@ -340,7 +340,7 @@ class ContributesBindingProcessorTest {
             interface Base
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding(multibinding = true)
             class Impl : Base 
             """,
@@ -371,7 +371,7 @@ class ContributesBindingProcessorTest {
             interface Base
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding(multibinding = false)
             @ContributesBinding(multibinding = true)
             class Impl : Base 

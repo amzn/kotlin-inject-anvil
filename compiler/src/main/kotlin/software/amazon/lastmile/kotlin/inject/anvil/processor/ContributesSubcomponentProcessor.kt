@@ -40,11 +40,10 @@ import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
  * ```
  * package software.amazon.test
  *
- * @ContributesSubcomponent
- * @ChildScope
+ * @ContributesSubcomponent(LoggedInScope::class)
+ * @SingleIn(AppScope::class)
  * interface Subcomponent {
- *     @ContributesSubcomponent.Factory
- *     @ParentScope
+ *     @ContributesSubcomponent.Factory(AppScope::class)
  *     interface Factory {
  *         fun createSubcomponent(): Subcomponent
  *     }
@@ -52,8 +51,8 @@ import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
  *
  * // The trigger for generating the code:
  * @Component
- * @MergeComponent
- * @ParentScope
+ * @MergeComponent(AppScope::class)
+ * @SingleIn(AppScope::class)
  * abstract class ParentComponent : ParentComponentMerged
  * ```
  * Will generate:
@@ -61,8 +60,8 @@ import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
  * package software.amazon.test
  *
  * @Component
- * @MergeComponent
- * @ChildScope
+ * @MergeComponent(LoggedInScope::class)
+ * @SingleIn(AppScope::class)
  * abstract class SubcomponentFinal(
  *     @Component val parentComponent: ParentComponent,
  * ) : Subcomponent, SubcomponentMerged {

@@ -476,13 +476,13 @@ class MergeComponentProcessorTest {
             interface Base
 
             @Inject
-            @SingleInAppScope
+            @Singleton
             @ContributesBinding
             class Impl : Base
 
             @Component
             @MergeComponent(exclude = [Impl::class])
-            @SingleInAppScope
+            @Singleton
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
             }

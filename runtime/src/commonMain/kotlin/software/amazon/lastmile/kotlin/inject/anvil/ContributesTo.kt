@@ -4,7 +4,7 @@ import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.reflect.KClass
 
 /**
- * Marks a component interface to be included in the dependency graph in the given `scope`.
+ * Marks a component interface to be included in the dependency graph in the given [scope].
  * The processor will automatically add the interface as super type to the final component
  * marked with [MergeComponent].
  * ```
@@ -12,10 +12,14 @@ import kotlin.reflect.KClass
  * interface ComponentInterface { .. }
  * ```
  *
- * Or another example where the scope on the component interface is used.
+ *
+ * ## Custom scopes
+ *
+ * If you use your own scope annotations without the references such as `AppScope::class`, then
+ * you can use your scope directly on the class:
  * ```
  * @ContributesTo
- * @SingleInAppScope
+ * @Singleton
  * interface ComponentInterface { .. }
  * ```
  */
