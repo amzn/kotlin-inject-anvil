@@ -2,7 +2,9 @@ package software.amazon.lastmile.kotlin.inject.anvil.sample
 
 import me.tatarka.inject.annotations.Inject
 import platform.UIKit.UIApplication
+import software.amazon.lastmile.kotlin.inject.anvil.AppScope
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
 /**
  * iOS implementation for [ApplicationIdProvider] and provides a fake string as application
@@ -12,8 +14,8 @@ import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
  * inject [ApplicationIdProvider] through the [ContributesBinding] annotation.
  */
 @Inject
-@SingleInAppScope
-@ContributesBinding
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class IosApplicationIdProvider(
     application: UIApplication,
 ) : ApplicationIdProvider {
