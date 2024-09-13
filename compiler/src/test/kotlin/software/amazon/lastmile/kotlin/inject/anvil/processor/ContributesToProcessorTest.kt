@@ -14,9 +14,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.generatedComponent
 import software.amazon.lastmile.kotlin.inject.anvil.inner
-import software.amazon.lastmile.kotlin.inject.anvil.isAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.origin
-import software.amazon.test.SingleInAppScope
 
 class ContributesToProcessorTest {
 
@@ -37,7 +35,28 @@ class ContributesToProcessorTest {
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
             assertThat(generatedComponent.interfaces).containsExactly(componentInterface)
-            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
+            assertThat(generatedComponent.origin).isEqualTo(componentInterface)
+        }
+    }
+
+    @Test
+    fun `a component interface is generated in the lookup package for a contributed component interface using a scope marker`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+            @ContributesTo(AppScope::class)
+            interface ComponentInterface
+            """,
+        ) {
+            val generatedComponent = componentInterface.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent.interfaces).containsExactly(componentInterface)
             assertThat(generatedComponent.origin).isEqualTo(componentInterface)
         }
     }
@@ -61,7 +80,6 @@ class ContributesToProcessorTest {
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
             assertThat(generatedComponent.interfaces).containsExactly(componentInterface.inner)
-            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
             assertThat(generatedComponent.origin).isEqualTo(componentInterface.inner)
         }
     }
@@ -115,7 +133,10 @@ class ContributesToProcessorTest {
             """,
             exitCode = COMPILATION_ERROR,
         ) {
-            assertThat(messages).contains("Couldn't find scope annotation for ComponentInterface.")
+            assertThat(messages).contains(
+                "Couldn't find scope for ComponentInterface. For unscoped " +
+                    "objects it is required to specify the target scope on the annotation.",
+            )
         }
     }
 }

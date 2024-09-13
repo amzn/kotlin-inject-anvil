@@ -10,13 +10,17 @@ import assertk.assertions.isNotNull
 import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
+import me.tatarka.inject.annotations.Component
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import software.amazon.lastmile.kotlin.inject.anvil.Compilation
+import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.newComponent
+import software.amazon.lastmile.kotlin.inject.anvil.origin
 
 class ContributesSubcomponentProcessorTest {
 
@@ -69,6 +73,80 @@ class ContributesSubcomponentProcessorTest {
                 .invoke(childComponent)
 
             assertThat(string).isEqualTo("abc")
+
+            val generatedClass = otherComponent.generatedSubcomponent
+            assertThat(generatedClass.getAnnotation(Component::class.java)).isNotNull()
+            assertThat(generatedClass.getAnnotation(MergeComponent::class.java).scope)
+                .isEqualTo(Unit::class)
+
+            @Suppress("UNCHECKED_CAST")
+            val childScopeClass = classLoader
+                .loadClass("software.amazon.test.ChildScope") as Class<Annotation>
+
+            assertThat(generatedClass.getAnnotation(childScopeClass)).isNotNull()
+            assertThat(generatedClass.origin).isEqualTo(otherComponent)
+            assertThat(generatedClass.origin).isEqualTo(otherComponent)
+        }
+    }
+
+    @Test
+    fun `a contributed subcomponent is generated when the parent is merged using marker scopes`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+            @Component
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            interface ComponentInterface : ComponentInterfaceMerged
+
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
+            interface OtherComponent {
+                @ContributesSubcomponent.Factory(AppScope::class)
+                interface Parent {
+                    fun otherComponent(): OtherComponent 
+                }
+            }
+            
+            @ContributesTo(String::class)
+            interface ChildComponent {
+                @Provides
+                @SingleIn(String::class)
+                fun provideString(): String = "abc"
+
+                val string: String
+            }
+            """,
+        ) {
+            val component = componentInterface.newComponent<Any>()
+            val childComponent = component::class.java.methods
+                .single { it.name == "otherComponent" }
+                .invoke(component)
+
+            assertThat(childComponent).isNotNull()
+
+            val string = childComponent::class.java.methods
+                .single { it.name == "getString" }
+                .invoke(childComponent)
+
+            assertThat(string).isEqualTo("abc")
+
+            val generatedClass = otherComponent.generatedSubcomponent
+            assertThat(generatedClass.getAnnotation(Component::class.java)).isNotNull()
+            assertThat(generatedClass.getAnnotation(MergeComponent::class.java).scope)
+                .isEqualTo(String::class)
+            assertThat(generatedClass.getAnnotation(SingleIn::class.java).scope)
+                .isEqualTo(String::class)
+            assertThat(generatedClass.origin).isEqualTo(otherComponent)
         }
     }
 
@@ -249,6 +327,40 @@ class ContributesSubcomponentProcessorTest {
     }
 
     @Test
+    fun `a contributed subcomponent can be excluded using marker scopes`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import me.tatarka.inject.annotations.Component
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+            @Component
+            @MergeComponent(AppScope::class ,exclude = [OtherComponent::class])
+            @SingleIn(AppScope::class)
+            interface ComponentInterface : ComponentInterfaceMerged
+
+            @ContributesSubcomponent(String::class)
+            interface OtherComponent {
+                @ContributesSubcomponent.Factory(AppScope::class)
+                interface Parent {
+                    fun otherComponent(): OtherComponent 
+                }
+            }
+            """,
+        ) {
+            val component = componentInterface.newComponent<Any>()
+
+            assertThat(
+                component::class.java.methods.filter { it.name == "otherComponent" },
+            ).isEmpty()
+        }
+    }
+
+    @Test
     fun `contributed subcomponents can be chained`() {
         compile(
             """
@@ -406,6 +518,12 @@ class ContributesSubcomponentProcessorTest {
 
     private val JvmCompilationResult.componentInterface2: Class<*>
         get() = classLoader.loadClass("software.amazon.test.ComponentInterface2")
+
+    private val JvmCompilationResult.otherComponent: Class<*>
+        get() = classLoader.loadClass("software.amazon.test.OtherComponent")
+
+    private val Class<*>.generatedSubcomponent: Class<*>
+        get() = classLoader.loadClass("${canonicalName}FinalComponentInterface")
 
     @Language("kotlin")
     internal val scopesSource = """

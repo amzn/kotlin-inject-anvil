@@ -70,6 +70,54 @@ class MergeComponentProcessorTest {
     }
 
     @Test
+    fun `component interfaces are merged using marker scopes`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+            interface Base
+
+            @Inject
+            @SingleIn(AppScope::class)
+            class Impl : Base {
+            
+                @ContributesTo(AppScope::class)
+                interface Component {
+                    @Provides fun provideImpl(impl: Impl): Base = impl
+
+                    val string: String
+                }
+            }
+
+            @ContributesTo(AppScope::class)
+            interface StringComponent {
+                @Provides fun provideString(): String = "abc"
+            }
+
+            @Component
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            abstract class ComponentInterface : ComponentInterfaceMerged {
+                abstract val base: Base
+            }
+            """,
+        ) {
+            assertThat(componentInterface.mergedComponent).isNotNull()
+
+            assertThat(stringComponent.isAssignableFrom(componentInterface)).isTrue()
+            assertThat(implComponent.isAssignableFrom(componentInterface)).isTrue()
+        }
+    }
+
+    @Test
     fun `component interfaces are merged into inner class`() {
         compile(
             """
@@ -156,6 +204,41 @@ class MergeComponentProcessorTest {
     }
 
     @Test
+    fun `contributed bindings are merged using marker scopes`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(AppScope::class)
+            class Impl : Base
+
+            @Component
+            @MergeComponent(AppScope::class)
+            abstract class ComponentInterface : ComponentInterfaceMerged {
+                abstract val base: Base
+            }
+            """,
+        ) {
+            assertThat(componentInterface.mergedComponent).isNotNull()
+
+            assertThat(
+                classLoader.loadClass("$LOOKUP_PACKAGE.SoftwareAmazonTestImpl")
+                    .isAssignableFrom(componentInterface),
+            ).isTrue()
+        }
+    }
+
+    @Test
     fun `component interfaces from previous compilations are merged`() {
         val previousCompilation = compile(
             """
@@ -230,7 +313,10 @@ class MergeComponentProcessorTest {
             """,
             exitCode = COMPILATION_ERROR,
         ) {
-            assertThat(messages).contains("Couldn't find scope annotation for ComponentInterface.")
+            assertThat(messages).contains(
+                "Couldn't find scope for ComponentInterface. For unscoped " +
+                    "objects it is required to specify the target scope on the annotation.",
+            )
         }
     }
 
@@ -360,7 +446,7 @@ class MergeComponentProcessorTest {
             }
 
             @Component
-            @MergeComponent([StringComponent::class])
+            @MergeComponent(OtherScope::class, [StringComponent::class])
             @OtherScope
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
@@ -407,6 +493,55 @@ class MergeComponentProcessorTest {
                 "e: [ksp] Cannot find an @Inject constructor or provider for: " +
                     "software.amazon.test.Base",
             )
+        }
+    }
+
+    @Test
+    fun `using a different kotlin-inject scope with marker scopes is allowed`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+
+            interface Base
+
+            @Inject
+            @OtherScope
+            class Impl : Base {
+            
+                @ContributesTo(AppScope::class)
+                @OtherScope
+                interface Component {
+                    @Provides fun provideImpl(impl: Impl): Base = impl
+                }
+            }
+
+            // Note this is contributed to a different scope.
+            @ContributesTo
+            @OtherScope
+            interface StringComponent {
+                @Provides fun provideString(): String = "abc"
+            }
+
+            @Component
+            @MergeComponent(AppScope::class)
+            @OtherScope
+            abstract class ComponentInterface : ComponentInterfaceMerged {
+                abstract val base: Base
+            }
+            """,
+            otherScopeSource,
+        ) {
+            assertThat(componentInterface.mergedComponent).isNotNull()
+
+            assertThat(implComponent.isAssignableFrom(componentInterface)).isTrue()
+            assertThat(stringComponent.isAssignableFrom(componentInterface)).isFalse()
         }
     }
 

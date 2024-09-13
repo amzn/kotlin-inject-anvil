@@ -20,7 +20,6 @@ import software.amazon.lastmile.kotlin.inject.anvil.isAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.isNotAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.origin
 import software.amazon.lastmile.kotlin.inject.anvil.otherScopeSource
-import software.amazon.test.SingleInAppScope
 
 class ContributesBindingProcessorTest {
 
@@ -44,7 +43,6 @@ class ContributesBindingProcessorTest {
             val generatedComponent = impl.generatedComponent
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
             assertThat(generatedComponent.origin).isEqualTo(impl)
 
             val method = generatedComponent.declaredMethods.single()
@@ -77,7 +75,6 @@ class ContributesBindingProcessorTest {
             val generatedComponent = impl.inner.generatedComponent
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
             assertThat(generatedComponent.origin).isEqualTo(impl.inner)
 
             val method = generatedComponent.declaredMethods.single()
@@ -185,63 +182,7 @@ class ContributesBindingProcessorTest {
             val generatedComponent = impl.generatedComponent
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
             assertThat(generatedComponent.origin).isEqualTo(impl)
-        }
-    }
-
-    @Test
-    fun `it's an error to set the scope explicitly when the class is scoped`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-            import me.tatarka.inject.annotations.Inject
-
-            interface Base
-            
-            @Inject
-            @SingleInAppScope
-            @ContributesBinding(scope = SingleInAppScope::class)
-            class Impl : Base 
-            """,
-            exitCode = COMPILATION_ERROR,
-        ) {
-            assertThat(messages).contains(
-                "A scope was defined explicitly on the @ContributesBinding annotation " +
-                    "`software.amazon.test.SingleInAppScope` and the class itself is scoped " +
-                    "using `software.amazon.test.SingleInAppScope`. In this case the explicit " +
-                    "scope on the @ContributesBinding annotation can be removed.",
-            )
-        }
-    }
-
-    @Test
-    fun `it's an error to set the scope explicitly when the class is scoped - different scopes`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-            import me.tatarka.inject.annotations.Inject
-
-            interface Base
-
-            @Inject
-            @OtherScope
-            @ContributesBinding(scope = SingleInAppScope::class)
-            class Impl : Base 
-            """,
-            otherScopeSource,
-            exitCode = COMPILATION_ERROR,
-        ) {
-            assertThat(messages).contains(
-                "A scope was defined explicitly on the @ContributesBinding annotation " +
-                    "`software.amazon.test.SingleInAppScope` and the class itself is scoped " +
-                    "using `software.amazon.test.OtherScope`. It's not allowed to mix different " +
-                    "scopes.",
-            )
         }
     }
 
@@ -264,7 +205,7 @@ class ContributesBindingProcessorTest {
         ) {
             assertThat(messages).contains(
                 "Couldn't find scope for Impl. For unscoped objects it is required " +
-                    "to specify the target scope on the @ContributesBinding annotation.",
+                    "to specify the target scope on the annotation.",
             )
         }
     }
@@ -291,7 +232,6 @@ class ContributesBindingProcessorTest {
             val generatedComponent = impl.generatedComponent
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
             assertThat(generatedComponent.origin).isEqualTo(impl)
 
             with(generatedComponent.declaredMethods.single { it.name == "provideImplBase" }) {
@@ -329,7 +269,7 @@ class ContributesBindingProcessorTest {
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
-                "All explicit scopes on @ContributesBinding annotations must be the same.",
+                "All explicit scopes on annotations must be the same.",
             )
         }
     }
@@ -356,7 +296,7 @@ class ContributesBindingProcessorTest {
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
-                "If one @ContributesBinding annotation has an explicit scope, " +
+                "If one annotation has an explicit scope, " +
                     "then all annotations must specify an explicit scope.",
             )
         }
@@ -408,7 +348,6 @@ class ContributesBindingProcessorTest {
             val generatedComponent = impl.generatedComponent
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
             assertThat(generatedComponent.origin).isEqualTo(impl)
 
             val method = generatedComponent.declaredMethods.single()
@@ -441,7 +380,6 @@ class ContributesBindingProcessorTest {
             val generatedComponent = impl.generatedComponent
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent).isAnnotatedWith(SingleInAppScope::class)
             assertThat(generatedComponent.origin).isEqualTo(impl)
 
             assertThat(generatedComponent.declaredMethods).hasSize(2)

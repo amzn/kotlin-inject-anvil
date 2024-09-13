@@ -34,6 +34,11 @@ import kotlin.reflect.KClass
 @Target(CLASS)
 public annotation class MergeComponent(
     /**
+     * The scope in which to include this contributed component interface.
+     */
+    val scope: KClass<*> = Unit::class,
+
+    /**
      * List of component interfaces that are contributed to the same scope, but should be
      * excluded from the component.
      */

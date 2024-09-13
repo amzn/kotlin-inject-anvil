@@ -64,18 +64,94 @@ internal interface ContextAware {
         check(clazz.classKind == ClassKind.INTERFACE, clazz, lazyMessage)
     }
 
-    fun KSClassDeclaration.scope(): KSAnnotation {
+    fun checkHasScope(clazz: KSClassDeclaration) {
+        // Ensures that the value is non-null.
+        clazz.scope()
+    }
+
+    fun KSClassDeclaration.scope(): MergeScope {
         return requireNotNull(scopeOrNull(), this) {
             "Couldn't find scope annotation for $this."
         }
     }
 
-    fun KSClassDeclaration.scopeOrNull(): KSAnnotation? =
-        annotations.firstOrNull { isScopeAnnotation(it) }
+    private fun KSClassDeclaration.scopeOrNull(): MergeScope? {
+        val annotationsWithScopeParameter = annotations.filter {
+            // Avoid scope annotations themselves, e.g. that skips `@SingleIn` and include
+            // annotations with a "scope" parameter, e.g. `@ContributesTo`.
+            !isScopeAnnotation(it) && it.hasScopeParameter()
+        }.toList()
 
-    private fun isScopeAnnotation(annotation: KSAnnotation): Boolean {
-        return annotation.annotationType.resolve().declaration.annotations.any {
+        return if (annotationsWithScopeParameter.isEmpty()) {
+            annotations.firstOrNull { isScopeAnnotation(it) }
+                ?.let { MergeScope(this@ContextAware, it) }
+        } else {
+            scopeForAnnotationsWithScopeParameters(this, annotationsWithScopeParameter)
+        }
+    }
+
+    fun isScopeAnnotation(annotation: KSAnnotation): Boolean {
+        return isScopeAnnotation(annotation.annotationType.resolve())
+    }
+
+    private fun isScopeAnnotation(type: KSType): Boolean {
+        return type.declaration.annotations.any {
             it.annotationType.resolve().declaration.requireQualifiedName() == scopeFqName
+        }
+    }
+
+    private fun KSAnnotation.hasScopeParameter(): Boolean {
+        return (annotationType.resolve().declaration as? KSClassDeclaration)
+            ?.primaryConstructor?.parameters?.firstOrNull()?.name?.asString() == "scope"
+    }
+
+    private fun scopeForAnnotationsWithScopeParameters(
+        clazz: KSClassDeclaration,
+        annotations: List<KSAnnotation>,
+    ): MergeScope {
+        val explicitScopes = annotations.mapNotNull { annotation ->
+            annotation.scopeParameter(this)
+        }
+
+        val classScope = clazz.annotations.firstOrNull { isScopeAnnotation(it) }
+            ?.let { MergeScope(this, it) }
+
+        if (explicitScopes.isNotEmpty()) {
+            check(explicitScopes.size == annotations.size, clazz) {
+                "If one annotation has an explicit scope, then all " +
+                    "annotations must specify an explicit scope."
+            }
+
+            explicitScopes.scan(
+                explicitScopes.first().declaration.requireQualifiedName(),
+            ) { previous, next ->
+                check(previous == next.declaration.requireQualifiedName(), clazz) {
+                    "All explicit scopes on annotations must be the same."
+                }
+                previous
+            }
+
+            val explicitScope = explicitScopes.first()
+            val explicitScopeIsScope = isScopeAnnotation(explicitScope)
+
+            return if (explicitScopeIsScope) {
+                MergeScope(
+                    contextAware = this,
+                    annotationType = explicitScope,
+                    markerType = null,
+                )
+            } else {
+                MergeScope(
+                    contextAware = this,
+                    annotationType = null,
+                    markerType = explicitScope,
+                )
+            }
+        }
+
+        return requireNotNull(classScope, clazz) {
+            "Couldn't find scope for ${clazz.simpleName.asString()}. For unscoped " +
+                "objects it is required to specify the target scope on the annotation."
         }
     }
 
@@ -98,11 +174,6 @@ internal interface ContextAware {
     fun KSClassDeclaration.findAnnotations(annotation: KClass<out Annotation>): List<KSAnnotation> {
         val fqName = annotation.requireQualifiedName()
         return annotations.filter { it.isAnnotation(fqName) }.toList()
-            .also {
-                check(it.isNotEmpty(), this) {
-                    "Couldn't find the @${annotation.simpleName} annotation for $this."
-                }
-            }
     }
 
     fun KSAnnotation.isAnnotation(fqName: String): Boolean {
@@ -117,22 +188,10 @@ internal interface ContextAware {
         "Containing file was null for $this"
     }
 
-    fun KSDeclaration.requireQualifiedName(): String =
-        requireNotNull(qualifiedName?.asString(), this) {
-            "Qualified name was null for $this"
-        }
-
-    fun KClass<*>.requireQualifiedName(): String = requireNotNull(qualifiedName) {
-        "Qualified name was null for $this"
-    }
+    fun KSDeclaration.requireQualifiedName(): String = requireQualifiedName(this@ContextAware)
 
     fun Resolver.getSymbolsWithAnnotation(annotation: KClass<*>): Sequence<KSAnnotated> =
         getSymbolsWithAnnotation(annotation.requireQualifiedName())
-
-    fun KSAnnotation.isSameAs(other: KSAnnotation): Boolean {
-        return annotationType.resolve().declaration.requireQualifiedName() ==
-            other.annotationType.resolve().declaration.requireQualifiedName()
-    }
 
     fun KSDeclaration.innerClassNames(separator: String = ""): String {
         val classNames = requireQualifiedName().substring(packageName.asString().length + 1)

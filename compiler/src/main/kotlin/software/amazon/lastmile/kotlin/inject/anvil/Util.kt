@@ -3,12 +3,15 @@ package software.amazon.lastmile.kotlin.inject.anvil
 import com.google.devtools.ksp.isDefault
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
+import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSValueArgument
 import com.squareup.kotlinpoet.Annotatable
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import java.util.Locale
+import kotlin.reflect.KClass
 
 /**
  * The package in which code is generated that should be picked up during the merging phase.
@@ -61,4 +64,22 @@ private inline fun <reified T, R> KSAnnotation.argumentOfTypeWithMapperAt(
 internal fun KSAnnotation.argumentAt(name: String): KSValueArgument? {
     return arguments.find { it.name?.asString() == name }
         ?.takeUnless { it.isDefault() }
+}
+
+internal fun KSDeclaration.requireQualifiedName(contextAware: ContextAware): String =
+    contextAware.requireNotNull(qualifiedName?.asString(), this) {
+        "Qualified name was null for $this"
+    }
+
+internal fun KClass<*>.requireQualifiedName(): String = requireNotNull(qualifiedName) {
+    "Qualified name was null for $this"
+}
+
+internal fun KSAnnotation.scopeParameter(contextAware: ContextAware): KSType? {
+    return arguments.firstOrNull { it.name?.asString() == "scope" }
+        ?.let { it.value as? KSType }
+        ?.takeIf {
+            it.declaration.requireQualifiedName(contextAware) !=
+                Unit::class.requireQualifiedName()
+        }
 }

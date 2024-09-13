@@ -15,9 +15,7 @@ import org.junit.jupiter.api.Test
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.generatedComponent
-import software.amazon.lastmile.kotlin.inject.anvil.isAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.origin
-import kotlin.reflect.KClass
 
 class ContributesSubcomponentFactoryProcessorTest {
 
@@ -45,7 +43,33 @@ class ContributesSubcomponentFactoryProcessorTest {
 
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
             assertThat(generatedComponent.interfaces).containsExactly(subcomponent.factory)
-            assertThat(generatedComponent).isAnnotatedWith(parentScope)
+            assertThat(generatedComponent.origin).isEqualTo(subcomponent.factory)
+        }
+    }
+
+    @Test
+    fun `a component interface is generated in the lookup package for a contributed subcomponent factory using a scope marker`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+
+            @ContributesSubcomponent(AppScope::class)
+            interface SubcomponentInterface {
+                @ContributesSubcomponent.Factory(String::class)
+                interface Factory {
+                    fun createSubcomponentInterface(): SubcomponentInterface
+                }          
+            }
+            """,
+            scopesSource,
+        ) {
+            val generatedComponent = subcomponent.factory.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent.interfaces).containsExactly(subcomponent.factory)
             assertThat(generatedComponent.origin).isEqualTo(subcomponent.factory)
         }
     }
@@ -301,11 +325,6 @@ class ContributesSubcomponentFactoryProcessorTest {
 
     private val JvmCompilationResult.subcomponent: Class<*>
         get() = classLoader.loadClass("software.amazon.test.SubcomponentInterface")
-
-    @Suppress("UNCHECKED_CAST")
-    private val JvmCompilationResult.parentScope: KClass<out Annotation>
-        get() = classLoader.loadClass("software.amazon.test.ParentScope").kotlin
-            as KClass<out Annotation>
 
     private val Class<*>.factory: Class<*>
         get() = classes.single { it.simpleName == "Factory" }
