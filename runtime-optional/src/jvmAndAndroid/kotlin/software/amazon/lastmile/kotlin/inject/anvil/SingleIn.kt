@@ -4,6 +4,7 @@ import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
+import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 import kotlin.reflect.KClass
 
 /**
@@ -23,7 +24,7 @@ import kotlin.reflect.KClass
 @me.tatarka.inject.annotations.Scope
 @javax.inject.Scope
 @Retention(RUNTIME)
-@Target(CLASS, FUNCTION, PROPERTY_GETTER)
+@Target(CLASS, FUNCTION, PROPERTY_GETTER, VALUE_PARAMETER)
 public actual annotation class SingleIn(
     /**
      * The marker that identifies this scope.
