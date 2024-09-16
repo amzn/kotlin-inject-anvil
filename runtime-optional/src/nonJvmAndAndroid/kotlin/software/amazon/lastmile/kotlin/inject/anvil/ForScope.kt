@@ -4,6 +4,7 @@ import me.tatarka.inject.annotations.Qualifier
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.reflect.KClass
 
 /**
@@ -22,7 +23,7 @@ import kotlin.reflect.KClass
  */
 @Qualifier
 @Retention(RUNTIME)
-@Target(CLASS, FUNCTION)
+@Target(CLASS, FUNCTION, PROPERTY_GETTER)
 public actual annotation class ForScope(
     /**
      * The marker that identifies this scope.
