@@ -17,6 +17,13 @@
 ### Other Notes & Contributions
 
 
+## [0.0.4] - 2024-09-16
+
+### Fixed
+
+* Allow adding annotations from `:runtime-optional` to property getters and value parameters.
+
+
 ## [0.0.3] - 2024-09-13
 
 ### Added
@@ -46,7 +53,8 @@
 
 - Initial release.
 
-[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.0.3...HEAD
-[0.0.2]: https://github.com/square/anvil/releases/tag/0.0.3
+[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.0.4...HEAD
+[0.0.4]: https://github.com/square/anvil/releases/tag/0.0.4
+[0.0.3]: https://github.com/square/anvil/releases/tag/0.0.3
 [0.0.2]: https://github.com/square/anvil/releases/tag/0.0.2
 [0.0.1]: https://github.com/square/anvil/releases/tag/0.0.1
