@@ -3,6 +3,7 @@ package software.amazon.lastmile.kotlin.inject.anvil
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.reflect.KClass
 
 /**
@@ -22,7 +23,7 @@ import kotlin.reflect.KClass
 @me.tatarka.inject.annotations.Scope
 @javax.inject.Scope
 @Retention(RUNTIME)
-@Target(CLASS, FUNCTION)
+@Target(CLASS, FUNCTION, PROPERTY_GETTER)
 public actual annotation class SingleIn(
     /**
      * The marker that identifies this scope.
