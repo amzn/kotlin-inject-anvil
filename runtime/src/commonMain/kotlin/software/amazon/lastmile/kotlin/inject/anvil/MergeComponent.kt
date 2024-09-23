@@ -31,27 +31,13 @@ import kotlin.reflect.KClass
  * )
  * interface AppComponent
  * ```
- *
- *
- * ## Custom scopes
- *
- * If you use your own scope annotations without the references such as `AppScope::class`, then
- * you can use your scope directly on the class:
- * ```
- * @Component
- * @MergeComponent
- * @Singleton
- * abstract class AppComponent(
- *     ...
- * ) : AppComponentMerged
- * ```
  */
 @Target(CLASS)
 public annotation class MergeComponent(
     /**
      * The scope in which to include this contributed component interface.
      */
-    val scope: KClass<*> = Unit::class,
+    val scope: KClass<*>,
 
     /**
      * List of component interfaces that are contributed to the same scope, but should be

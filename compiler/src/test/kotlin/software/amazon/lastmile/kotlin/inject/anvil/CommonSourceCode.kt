@@ -3,7 +3,6 @@
 package software.amazon.lastmile.kotlin.inject.anvil
 
 import com.tschuchort.compiletesting.JvmCompilationResult
-import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import java.lang.reflect.Method
@@ -58,16 +57,3 @@ internal val Class<*>.propertyAnnotations: Array<out Annotation>
         .filter { Modifier.isStatic(it.modifiers) }
         .single { it.name.endsWith("\$annotations") }
         .annotations
-
-@Language("kotlin")
-internal val otherScopeSource = """
-    package software.amazon.test
-    
-    import me.tatarka.inject.annotations.Scope
-
-    @Scope
-    annotation class OtherScope
-
-    @Scope
-    annotation class OtherScope2
-"""

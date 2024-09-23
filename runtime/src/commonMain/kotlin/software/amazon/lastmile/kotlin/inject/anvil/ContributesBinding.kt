@@ -64,19 +64,6 @@ import kotlin.reflect.KClass
  * @ContributesBinding(AppScope::class, boundType = Base2::class, multibinding = true)
  * class Impl : Base, Base2
  * ```
- *
- * ## Custom scopes
- *
- * If you use your own scope annotations without the references such as `AppScope::class`, then
- * you can use your scope directly on the class:
- * ```
- * interface Authenticator
- *
- * @Inject
- * @Singleton
- * @ContributesBinding
- * class RealAuthenticator : Authenticator
- * ```
  */
 @Target(CLASS)
 @Repeatable
@@ -84,7 +71,7 @@ public annotation class ContributesBinding(
     /**
      * The scope in which to include this contributed binding.
      */
-    val scope: KClass<*> = Unit::class,
+    val scope: KClass<*>,
     /**
      * The type that this class is bound to. When injecting [boundType] the concrete class will be
      * this annotated class.

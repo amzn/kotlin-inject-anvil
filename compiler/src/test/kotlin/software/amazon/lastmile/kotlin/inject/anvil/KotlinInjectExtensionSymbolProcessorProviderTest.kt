@@ -26,9 +26,10 @@ class KotlinInjectExtensionSymbolProcessorProviderTest {
                 package software.amazon.test
     
                 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+                import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
     
-                @ContributesTo
-                @Singleton
+                @ContributesTo(Unit::class)
+                @SingleIn(Unit::class)
                 interface ComponentInterface
                 """,
             )

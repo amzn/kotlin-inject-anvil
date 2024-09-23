@@ -26,30 +26,7 @@ class ContributesToProcessorTest {
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
-            @ContributesTo
-            @Singleton
-            interface ComponentInterface
-            """,
-        ) {
-            val generatedComponent = componentInterface.generatedComponent
-
-            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent.interfaces).containsExactly(componentInterface)
-            assertThat(generatedComponent.origin).isEqualTo(componentInterface)
-        }
-    }
-
-    @Test
-    fun `a component interface is generated in the lookup package for a contributed component interface using a scope marker`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
-            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
-
-            @ContributesTo(AppScope::class)
+            @ContributesTo(Unit::class)
             interface ComponentInterface
             """,
         ) {
@@ -70,8 +47,7 @@ class ContributesToProcessorTest {
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
             interface ComponentInterface {
-                @ContributesTo
-                @Singleton
+                @ContributesTo(Unit::class)
                 interface Inner
             }
             """,
@@ -92,8 +68,7 @@ class ContributesToProcessorTest {
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
-            @ContributesTo
-            @Singleton
+            @ContributesTo(Unit::class)
             private interface ComponentInterface
             """,
             exitCode = COMPILATION_ERROR,
@@ -110,33 +85,12 @@ class ContributesToProcessorTest {
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
-            @ContributesTo
-            @Singleton
+            @ContributesTo(Unit::class)
             abstract class ComponentInterface
             """,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains("Only interfaces can be contributed.")
-        }
-    }
-
-    @Test
-    fun `a scope must be present`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
-
-            @ContributesTo
-            interface ComponentInterface
-            """,
-            exitCode = COMPILATION_ERROR,
-        ) {
-            assertThat(messages).contains(
-                "Couldn't find scope for ComponentInterface. For unscoped " +
-                    "objects it is required to specify the target scope on the annotation.",
-            )
         }
     }
 }

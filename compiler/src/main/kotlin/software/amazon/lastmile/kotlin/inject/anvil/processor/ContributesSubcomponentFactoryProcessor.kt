@@ -112,6 +112,8 @@ internal class ContributesSubcomponentFactoryProcessor(
             "Factory interfaces must be inner classes of the contributed subcomponent, which " +
                 "need to be annotated with @ContributesSubcomponent."
         }
+
+        requireKotlinInjectScope(subcomponent)
     }
 
     private fun checkSingleFunction(factory: KSClassDeclaration) {

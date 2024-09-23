@@ -9,7 +9,6 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
-import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
@@ -26,37 +25,10 @@ class ContributesSubcomponentFactoryProcessorTest {
             package software.amazon.test
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesSubcomponent
-            @ChildScope
-            interface SubcomponentInterface {
-                @ContributesSubcomponent.Factory
-                @ParentScope
-                interface Factory {
-                    fun createSubcomponentInterface(): SubcomponentInterface
-                }          
-            }
-            """,
-            scopesSource,
-        ) {
-            val generatedComponent = subcomponent.factory.generatedComponent
-
-            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent.interfaces).containsExactly(subcomponent.factory)
-            assertThat(generatedComponent.origin).isEqualTo(subcomponent.factory)
-        }
-    }
-
-    @Test
-    fun `a component interface is generated in the lookup package for a contributed subcomponent factory using a scope marker`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
-
-            @ContributesSubcomponent(AppScope::class)
+            @ContributesSubcomponent(Unit::class)
+            @SingleIn(Unit::class)
             interface SubcomponentInterface {
                 @ContributesSubcomponent.Factory(String::class)
                 interface Factory {
@@ -64,7 +36,6 @@ class ContributesSubcomponentFactoryProcessorTest {
                 }          
             }
             """,
-            scopesSource,
         ) {
             val generatedComponent = subcomponent.factory.generatedComponent
 
@@ -81,19 +52,18 @@ class ContributesSubcomponentFactoryProcessorTest {
             package software.amazon.test
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
             interface SubcomponentInterface {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Factory {
                     fun createSubcomponentInterface(): SubcomponentInterface
                     fun createSubcomponentInterface2(): SubcomponentInterface
                 }          
             }
             """,
-            scopesSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
@@ -110,12 +80,12 @@ class ContributesSubcomponentFactoryProcessorTest {
             package software.amazon.test
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
             interface SubcomponentInterface {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Factory {
                     fun createSubcomponentInterface(): SubcomponentInterface
                     fun createSubcomponentInterface2(): SubcomponentInterface = 
@@ -125,7 +95,6 @@ class ContributesSubcomponentFactoryProcessorTest {
                 }          
             }
             """,
-            scopesSource,
         ) {
             assertThat(subcomponent.factory.generatedComponent).isNotNull()
         }
@@ -138,16 +107,15 @@ class ContributesSubcomponentFactoryProcessorTest {
             package software.amazon.test
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
             interface SubcomponentInterface {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Factory         
             }
             """,
-            scopesSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
@@ -164,18 +132,17 @@ class ContributesSubcomponentFactoryProcessorTest {
             package software.amazon.test
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
             interface SubcomponentInterface {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Factory {
                     fun createSubcomponentInterface(): Any
                 }          
             }
             """,
-            scopesSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
@@ -192,18 +159,17 @@ class ContributesSubcomponentFactoryProcessorTest {
             package software.amazon.test
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
             interface SubcomponentInterface {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Factory {
                     fun createSubcomponentInterface()
                 }          
             }
             """,
-            scopesSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
@@ -221,16 +187,13 @@ class ContributesSubcomponentFactoryProcessorTest {
 
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
     
-            @ChildScope
             interface SubcomponentInterface {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Factory {
                     fun createSubcomponentInterface(): SubcomponentInterface
                 }          
             }
             """,
-            scopesSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
@@ -248,13 +211,11 @@ class ContributesSubcomponentFactoryProcessorTest {
 
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
     
-            @ContributesSubcomponent.Factory
-            @ParentScope
+            @ContributesSubcomponent.Factory(String::class)
             interface Factory {
                 fun createSubcomponentInterface(): Factory
             }          
             """,
-            scopesSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
@@ -271,16 +232,13 @@ class ContributesSubcomponentFactoryProcessorTest {
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(String::class)
             interface SubcomponentInterface {
-                @ParentScope
                 interface Factory {
                     fun createSubcomponentInterface(): SubcomponentInterface
                 }          
             }
             """,
-            scopesSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
@@ -297,23 +255,21 @@ class ContributesSubcomponentFactoryProcessorTest {
             package software.amazon.test
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
             interface SubcomponentInterface {
-                @ParentScope
-                @ContributesSubcomponent.Factory
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Factory1 {
                     fun createSubcomponentInterface1(): SubcomponentInterface
                 }          
-                @ParentScope
-                @ContributesSubcomponent.Factory
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Factory2 {
                     fun createSubcomponentInterface2(): SubcomponentInterface
                 }          
             }
             """,
-            scopesSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
@@ -323,22 +279,33 @@ class ContributesSubcomponentFactoryProcessorTest {
         }
     }
 
+    @Test
+    fun `a contributed subcomponent must have a kotlin-inject scope`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+
+            @ContributesSubcomponent(String::class)
+            interface SubcomponentInterface {
+                @ContributesSubcomponent.Factory(Unit::class)
+                interface Factory {
+                    fun createSubcomponentInterface1(): SubcomponentInterface
+                }          
+            }
+            """,
+            exitCode = COMPILATION_ERROR,
+        ) {
+            assertThat(messages).contains(
+                "A kotlin-inject scope like @SingleIn(Abc::class) is missing.",
+            )
+        }
+    }
+
     private val JvmCompilationResult.subcomponent: Class<*>
         get() = classLoader.loadClass("software.amazon.test.SubcomponentInterface")
 
     private val Class<*>.factory: Class<*>
         get() = classes.single { it.simpleName == "Factory" }
-
-    @Language("kotlin")
-    internal val scopesSource = """
-        package software.amazon.test
-        
-        import me.tatarka.inject.annotations.Scope
-    
-        @Scope
-        annotation class ParentScope
-    
-        @Scope
-        annotation class ChildScope
-    """
 }

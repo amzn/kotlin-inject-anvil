@@ -21,6 +21,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.newComponent
 import software.amazon.lastmile.kotlin.inject.anvil.origin
+import kotlin.reflect.KClass
 
 class ContributesSubcomponentProcessorTest {
 
@@ -30,29 +31,29 @@ class ContributesSubcomponentProcessorTest {
             """
             package software.amazon.test
     
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Provides
 
-            @MergeComponent
+            @MergeComponent(AppScope::class)
             @Component
-            @ParentScope
+            @SingleIn(AppScope::class)
             interface ComponentInterface : ComponentInterfaceMerged
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
             interface OtherComponent {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(AppScope::class)
                 interface Parent {
                     fun otherComponent(): OtherComponent 
                 }
             }
             
-            @ContributesTo
-            @ChildScope
+            @ContributesTo(LoggedInScope::class)
             interface ChildComponent {
                 @Provides fun provideString(): String = "abc"
 
@@ -77,75 +78,10 @@ class ContributesSubcomponentProcessorTest {
             val generatedClass = otherComponent.generatedSubcomponent
             assertThat(generatedClass.getAnnotation(Component::class.java)).isNotNull()
             assertThat(generatedClass.getAnnotation(MergeComponent::class.java).scope)
-                .isEqualTo(Unit::class)
+                .isEqualTo(loggedInScope)
 
-            @Suppress("UNCHECKED_CAST")
-            val childScopeClass = classLoader
-                .loadClass("software.amazon.test.ChildScope") as Class<Annotation>
-
-            assertThat(generatedClass.getAnnotation(childScopeClass)).isNotNull()
-            assertThat(generatedClass.origin).isEqualTo(otherComponent)
-            assertThat(generatedClass.origin).isEqualTo(otherComponent)
-        }
-    }
-
-    @Test
-    fun `a contributed subcomponent is generated when the parent is merged using marker scopes`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import me.tatarka.inject.annotations.Component
-            import me.tatarka.inject.annotations.Provides
-            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
-            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
-            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
-
-            @Component
-            @MergeComponent(AppScope::class)
-            @SingleIn(AppScope::class)
-            interface ComponentInterface : ComponentInterfaceMerged
-
-            @ContributesSubcomponent(String::class)
-            @SingleIn(String::class)
-            interface OtherComponent {
-                @ContributesSubcomponent.Factory(AppScope::class)
-                interface Parent {
-                    fun otherComponent(): OtherComponent 
-                }
-            }
-            
-            @ContributesTo(String::class)
-            interface ChildComponent {
-                @Provides
-                @SingleIn(String::class)
-                fun provideString(): String = "abc"
-
-                val string: String
-            }
-            """,
-        ) {
-            val component = componentInterface.newComponent<Any>()
-            val childComponent = component::class.java.methods
-                .single { it.name == "otherComponent" }
-                .invoke(component)
-
-            assertThat(childComponent).isNotNull()
-
-            val string = childComponent::class.java.methods
-                .single { it.name == "getString" }
-                .invoke(childComponent)
-
-            assertThat(string).isEqualTo("abc")
-
-            val generatedClass = otherComponent.generatedSubcomponent
-            assertThat(generatedClass.getAnnotation(Component::class.java)).isNotNull()
-            assertThat(generatedClass.getAnnotation(MergeComponent::class.java).scope)
-                .isEqualTo(String::class)
             assertThat(generatedClass.getAnnotation(SingleIn::class.java).scope)
-                .isEqualTo(String::class)
+                .isEqualTo(loggedInScope)
             assertThat(generatedClass.origin).isEqualTo(otherComponent)
         }
     }
@@ -161,8 +97,7 @@ class ContributesSubcomponentProcessorTest {
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import me.tatarka.inject.annotations.Provides
 
-            @ContributesTo
-            @ChildScope
+            @ContributesTo(LoggedInScope::class)
             interface ChildComponent {
                 @Provides fun provideString(): String = "abc"
 
@@ -176,13 +111,14 @@ class ContributesSubcomponentProcessorTest {
             """
             package software.amazon.test
     
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
             interface OtherComponent {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(AppScope::class)
                 interface Parent {
                     fun otherComponent(): OtherComponent 
                 }
@@ -202,12 +138,14 @@ class ContributesSubcomponentProcessorTest {
                 """
                 package software.amazon.test
         
+                import software.amazon.lastmile.kotlin.inject.anvil.AppScope
                 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+                import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
                 import me.tatarka.inject.annotations.Component
     
-                @MergeComponent
+                @MergeComponent(AppScope::class)
                 @Component
-                @ParentScope
+                @SingleIn(AppScope::class)
                 interface ComponentInterface : ComponentInterfaceMerged
                 """,
             )
@@ -235,34 +173,34 @@ class ContributesSubcomponentProcessorTest {
             """
             package software.amazon.test
     
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Provides
 
-            @MergeComponent
             @Component
-            @ParentScope
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
             interface ComponentInterface : ComponentInterfaceMerged
 
-            @MergeComponent
             @Component
-            @ParentScope
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
             interface ComponentInterface2 : ComponentInterface2Merged
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
             interface OtherComponent {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(AppScope::class)
                 interface Parent {
                     fun otherComponent(): OtherComponent 
                 }
             }
             
-            @ContributesTo
-            @ChildScope
+            @ContributesTo(LoggedInScope::class)
             interface ChildComponent {
                 @Provides fun provideString(): String = "abc"
 
@@ -299,18 +237,18 @@ class ContributesSubcomponentProcessorTest {
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
             import me.tatarka.inject.annotations.Component
 
-            @MergeComponent(exclude = [OtherComponent::class])
             @Component
-            @ParentScope
+            @MergeComponent(Unit::class, exclude = [OtherComponent::class])
+            @SingleIn(Unit::class)
             interface ComponentInterface : ComponentInterfaceMerged
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
             interface OtherComponent {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Parent {
                     fun otherComponent(): OtherComponent 
                 }
@@ -327,78 +265,43 @@ class ContributesSubcomponentProcessorTest {
     }
 
     @Test
-    fun `a contributed subcomponent can be excluded using marker scopes`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import me.tatarka.inject.annotations.Component
-            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
-            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
-            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
-
-            @Component
-            @MergeComponent(AppScope::class ,exclude = [OtherComponent::class])
-            @SingleIn(AppScope::class)
-            interface ComponentInterface : ComponentInterfaceMerged
-
-            @ContributesSubcomponent(String::class)
-            interface OtherComponent {
-                @ContributesSubcomponent.Factory(AppScope::class)
-                interface Parent {
-                    fun otherComponent(): OtherComponent 
-                }
-            }
-            """,
-        ) {
-            val component = componentInterface.newComponent<Any>()
-
-            assertThat(
-                component::class.java.methods.filter { it.name == "otherComponent" },
-            ).isEmpty()
-        }
-    }
-
-    @Test
     fun `contributed subcomponents can be chained`() {
         compile(
             """
             package software.amazon.test
     
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Provides
 
-            @MergeComponent
             @Component
-            @ParentScope
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
             interface ComponentInterface : ComponentInterfaceMerged
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
             interface ComponentInterface2 {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(AppScope::class)
                 interface Parent {
                     fun componentInterface2(): ComponentInterface2 
                 }
             }
 
-            @ContributesSubcomponent
-            @GrandChildScope
+            @ContributesSubcomponent(Unit::class)
+            @SingleIn(Unit::class)
             interface OtherComponent {
-                @ContributesSubcomponent.Factory
-                @ChildScope
+                @ContributesSubcomponent.Factory(LoggedInScope::class)
                 interface Parent {
                     fun otherComponent(): OtherComponent 
                 }
             }
             
-            @ContributesTo
-            @GrandChildScope
+            @ContributesTo(Unit::class)
             interface ChildComponent {
                 @Provides fun provideString(): String = "abc"
 
@@ -434,29 +337,29 @@ class ContributesSubcomponentProcessorTest {
             """
             package software.amazon.test
     
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Provides
 
-            @MergeComponent
             @Component
-            @ParentScope
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
             interface ComponentInterface : ComponentInterfaceMerged
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
             interface OtherComponent {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(AppScope::class)
                 interface Parent {
                     fun otherComponent(stringArg: String, intArg: Int): OtherComponent 
                 }
             }
             
-            @ContributesTo
-            @ChildScope
+            @ContributesTo(LoggedInScope::class)
             interface ChildComponent {
                 val string: String
                 val int: Int
@@ -492,14 +395,14 @@ class ContributesSubcomponentProcessorTest {
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Provides
 
-            @ContributesSubcomponent
-            @ChildScope
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
             abstract class OtherComponent {
-                @ContributesSubcomponent.Factory
-                @ParentScope
+                @ContributesSubcomponent.Factory(Unit::class)
                 interface Parent {
                     fun otherComponent(stringArg: String, intArg: Int): OtherComponent 
                 }
@@ -522,22 +425,16 @@ class ContributesSubcomponentProcessorTest {
     private val JvmCompilationResult.otherComponent: Class<*>
         get() = classLoader.loadClass("software.amazon.test.OtherComponent")
 
+    private val JvmCompilationResult.loggedInScope: KClass<*>
+        get() = classLoader.loadClass("software.amazon.test.LoggedInScope").kotlin
+
     private val Class<*>.generatedSubcomponent: Class<*>
         get() = classLoader.loadClass("${canonicalName}FinalComponentInterface")
 
     @Language("kotlin")
     internal val scopesSource = """
         package software.amazon.test
-        
-        import me.tatarka.inject.annotations.Scope
     
-        @Scope
-        annotation class ParentScope
-    
-        @Scope
-        annotation class ChildScope
-    
-        @Scope
-        annotation class GrandChildScope
+        object LoggedInScope
     """
 }
