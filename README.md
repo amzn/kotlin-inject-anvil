@@ -179,59 +179,37 @@ every component in your project.
 
 ### Scopes
 
-The plugin builds a connection between contributions and merged components through the scope.
-How scopes function with `kotlin-inject` is described in the
-[documentation](https://github.com/evant/kotlin-inject#scopes).
+The plugin builds a connection between contributions and merged components through the scope
+parameters. Scope classes are only markers and have no further meaning besides building a
+connection between contributions and merging them. The class `AppScope` from the sample could
+look like this:
+```kotlin
+object AppScope
+```
 
-`kotlin-inject` supports scopes with and without parameters. For `kotlin-inject-anvil` we decided
-to prefer scope references as parameter to contribute and merge types as the
-[`@SingleIn` annotation](runtime-optional/src/commonMain/kotlin/software/amazon/lastmile/kotlin/inject/anvil/SingleIn.kt)
-defines it:
+Scope classes are independent of the `kotlin-inject`
+[scopes](https://github.com/evant/kotlin-inject#scopes). It's still necessary to set a scope for
+the `kotlin-inject` components or to make instances a singleton in a scope, e.g.
 ```kotlin
 @Inject
-@SingleIn(AppScope::class)
+@SingleIn(AppScope::class) // scope for kotlin-inject
 @ContributesBinding(AppScope::class)
 class RealAuthenticator : Authenticator
 
 @Component
 @MergeComponent(AppScope::class)
-@SingleIn(AppScope::class)
-interface AppComponent : AppComponentMerged
+@SingleIn(AppScope::class) // scope for kotlin-inject
+interface AppComponent
 ```
-The `@SingleIn` annotation needs to be explicitly imported!
+
+`kotlin-inject-anvil` provides the
+[`@SingleIn` scope annotation](runtime-optional/src/commonMain/kotlin/software/amazon/lastmile/kotlin/inject/anvil/SingleIn.kt)
+optionally by importing following module. We strongly recommend to use the annotation for
+consistency.
 ```groovy
 dependencies {
     commonMainImplementation "software.amazon.lastmile.kotlin.inject.anvil:runtime-optional:$version"
 }
-```
-
-However, scopes without parameters are also supported, such as:
-```kotlin
-import me.tatarka.inject.annotations.Scope
-
-@Scope
-annotation class Singleton
-```
-Instead of using the `scope` parameter on the `@Contributes*` annotations, you'd add this
-annotation on the class itself and `kotlin-anvil-inject` will still build the correct
-connections and merge the code:
-```kotlin
-@ContributesTo
-@Singleton
-interface AppIdComponent {
-    @Provides
-    fun provideAppId(): String = "demo app"
-}
-
-@Inject
-@Singleton
-@ContributesBinding
-class RealAuthenticator : Authenticator
-
-@Component
-@MergeComponent
-@Singleton
-interface AppComponent : AppComponentMerged
 ```
 
 ## Sample

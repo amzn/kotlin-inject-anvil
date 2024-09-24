@@ -11,6 +11,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
@@ -25,10 +26,10 @@ import org.junit.jupiter.params.provider.ValueSource
 import software.amazon.lastmile.kotlin.inject.anvil.Compilation
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import software.amazon.lastmile.kotlin.inject.anvil.OPTION_CONTRIBUTING_ANNOTATIONS
+import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.mergedComponent
-import software.amazon.test.Singleton
 
 private const val CONTRIBUTING_ANNOTATION =
     "software.amazon.lastmile.kotlin.inject.anvil.extend.ContributingAnnotation"
@@ -64,6 +65,7 @@ class CustomSymbolProcessorTest {
         
                 import me.tatarka.inject.annotations.Component
                 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+                import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
                 import kotlin.annotation.AnnotationTarget.CLASS
 
                 $markerAnnotation
@@ -74,8 +76,8 @@ class CustomSymbolProcessorTest {
                 class Renderer
     
                 @Component
-                @MergeComponent
-                @Singleton
+                @MergeComponent(Unit::class)
+                @SingleIn(Unit::class)
                 interface ComponentInterface : ComponentInterfaceMerged {
                     val string: String
                 }
@@ -132,13 +134,14 @@ class CustomSymbolProcessorTest {
         
                 import me.tatarka.inject.annotations.Component
                 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+                import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
                 
                 @ContributesRenderer
                 class Renderer
     
                 @Component
-                @MergeComponent
-                @Singleton
+                @MergeComponent(Unit::class)
+                @SingleIn(Unit::class)
                 interface ComponentInterface : ComponentInterfaceMerged {
                     val string: String
                 }
@@ -167,8 +170,16 @@ class CustomSymbolProcessorTest {
                                     TypeSpec
                                         .interfaceBuilder(componentClassName)
                                         .addOriginatingKSFile(clazz.containingFile!!)
-                                        .addAnnotation(ContributesTo::class)
-                                        .addAnnotation(Singleton::class)
+                                        .addAnnotation(
+                                            AnnotationSpec.builder(ContributesTo::class)
+                                                .addMember("Unit::class")
+                                                .build(),
+                                        )
+                                        .addAnnotation(
+                                            AnnotationSpec.builder(SingleIn::class)
+                                                .addMember("Unit::class")
+                                                .build(),
+                                        )
                                         .addFunction(
                                             FunSpec
                                                 .builder("provideString")

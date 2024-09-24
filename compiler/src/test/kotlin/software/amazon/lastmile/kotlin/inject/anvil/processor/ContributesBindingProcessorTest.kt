@@ -19,7 +19,6 @@ import software.amazon.lastmile.kotlin.inject.anvil.inner
 import software.amazon.lastmile.kotlin.inject.anvil.isAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.isNotAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.origin
-import software.amazon.lastmile.kotlin.inject.anvil.otherScopeSource
 
 class ContributesBindingProcessorTest {
 
@@ -35,8 +34,7 @@ class ContributesBindingProcessorTest {
             interface Base
 
             @Inject
-            @Singleton
-            @ContributesBinding
+            @ContributesBinding(Unit::class)
             class Impl : Base 
             """,
         ) {
@@ -66,8 +64,7 @@ class ContributesBindingProcessorTest {
 
             interface Impl {
                 @Inject
-                @Singleton
-                @ContributesBinding
+                @ContributesBinding(Unit::class)
                 class Inner : Base
             } 
             """,
@@ -98,13 +95,11 @@ class ContributesBindingProcessorTest {
             interface Base2 : Base
 
             @Inject
-            @Singleton
-            @ContributesBinding(boundType = Base::class)
+            @ContributesBinding(Unit::class, boundType = Base::class)
             class Impl : Base2 
 
             @Inject
-            @Singleton
-            @ContributesBinding
+            @ContributesBinding(Unit::class)
             class Impl2 : Base2 
             """,
         ) {
@@ -125,8 +120,7 @@ class ContributesBindingProcessorTest {
             import me.tatarka.inject.annotations.Inject
 
             @Inject
-            @Singleton
-            @ContributesBinding
+            @ContributesBinding(Unit::class)
             class Impl 
             """,
             exitCode = COMPILATION_ERROR,
@@ -150,8 +144,7 @@ class ContributesBindingProcessorTest {
             interface Base2
 
             @Inject
-            @Singleton
-            @ContributesBinding
+            @ContributesBinding(Unit::class)
             class Impl : Base, Base2
             """,
             exitCode = COMPILATION_ERROR,
@@ -159,53 +152,6 @@ class ContributesBindingProcessorTest {
             assertThat(messages).contains(
                 "The bound type could not be determined for Impl. " +
                     "There are multiple super types: Base, Base2.",
-            )
-        }
-    }
-
-    @Test
-    fun `the scope must be added explicitly for unscoped bindings`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-            import me.tatarka.inject.annotations.Inject
-
-            interface Base
-
-            @Inject
-            @ContributesBinding(scope = Singleton::class)
-            class Impl : Base 
-            """,
-        ) {
-            val generatedComponent = impl.generatedComponent
-
-            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
-            assertThat(generatedComponent.origin).isEqualTo(impl)
-        }
-    }
-
-    @Test
-    fun `it's an error to not specify the scope for unscoped bindings`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-            import me.tatarka.inject.annotations.Inject
-
-            interface Base
-
-            @Inject
-            @ContributesBinding
-            class Impl : Base 
-            """,
-            exitCode = COMPILATION_ERROR,
-        ) {
-            assertThat(messages).contains(
-                "Couldn't find scope for Impl. For unscoped objects it is required " +
-                    "to specify the target scope on the annotation.",
             )
         }
     }
@@ -223,9 +169,8 @@ class ContributesBindingProcessorTest {
             interface Base2
 
             @Inject
-            @Singleton
-            @ContributesBinding(boundType = Base::class)
-            @ContributesBinding(boundType = Base2::class)
+            @ContributesBinding(Unit::class, boundType = Base::class)
+            @ContributesBinding(Unit::class, boundType = Base2::class)
             class Impl : Base, Base2 
             """,
         ) {
@@ -261,43 +206,14 @@ class ContributesBindingProcessorTest {
             interface Base2
 
             @Inject
-            @ContributesBinding(scope = Singleton::class, boundType = Base::class)
-            @ContributesBinding(scope = OtherScope::class, boundType = Base2::class)
+            @ContributesBinding(scope = String::class, boundType = Base::class)
+            @ContributesBinding(scope = Unit::class, boundType = Base2::class)
             class Impl : Base, Base2 
             """,
-            otherScopeSource,
             exitCode = COMPILATION_ERROR,
         ) {
             assertThat(messages).contains(
-                "All explicit scopes on annotations must be the same.",
-            )
-        }
-    }
-
-    @Test
-    fun `it's an error to use different scopes for multiple bindings - on class`() {
-        compile(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-            import me.tatarka.inject.annotations.Inject
-
-            interface Base
-            interface Base2
-
-            @Inject
-            @OtherScope
-            @ContributesBinding(scope = Singleton::class, boundType = Base::class)
-            @ContributesBinding(boundType = Base2::class)
-            class Impl : Base, Base2 
-            """,
-            otherScopeSource,
-            exitCode = COMPILATION_ERROR,
-        ) {
-            assertThat(messages).contains(
-                "If one annotation has an explicit scope, " +
-                    "then all annotations must specify an explicit scope.",
+                "All scopes on annotations must be the same.",
             )
         }
     }
@@ -310,14 +226,12 @@ class ContributesBindingProcessorTest {
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
             import me.tatarka.inject.annotations.Inject
-            import me.tatarka.inject.annotations.Scope
 
             interface Base
 
             @Inject
-            @Singleton
-            @ContributesBinding(boundType = Base::class)
-            @ContributesBinding(boundType = Base::class)
+            @ContributesBinding(Unit::class, boundType = Base::class)
+            @ContributesBinding(Unit::class, boundType = Base::class)
             class Impl : Base, Base2 
             """,
             exitCode = COMPILATION_ERROR,
@@ -340,8 +254,7 @@ class ContributesBindingProcessorTest {
             interface Base
 
             @Inject
-            @Singleton
-            @ContributesBinding(multibinding = true)
+            @ContributesBinding(Unit::class, multibinding = true)
             class Impl : Base 
             """,
         ) {
@@ -371,9 +284,8 @@ class ContributesBindingProcessorTest {
             interface Base
 
             @Inject
-            @Singleton
-            @ContributesBinding(multibinding = false)
-            @ContributesBinding(multibinding = true)
+            @ContributesBinding(Unit::class, multibinding = false)
+            @ContributesBinding(Unit::class, multibinding = true)
             class Impl : Base 
             """,
         ) {

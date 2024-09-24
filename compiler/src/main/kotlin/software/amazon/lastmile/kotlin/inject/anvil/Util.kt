@@ -4,7 +4,6 @@ import com.google.devtools.ksp.isDefault
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
-import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSValueArgument
 import com.squareup.kotlinpoet.Annotatable
 import com.squareup.kotlinpoet.AnnotationSpec
@@ -73,13 +72,4 @@ internal fun KSDeclaration.requireQualifiedName(contextAware: ContextAware): Str
 
 internal fun KClass<*>.requireQualifiedName(): String = requireNotNull(qualifiedName) {
     "Qualified name was null for $this"
-}
-
-internal fun KSAnnotation.scopeParameter(contextAware: ContextAware): KSType? {
-    return arguments.firstOrNull { it.name?.asString() == "scope" }
-        ?.let { it.value as? KSType }
-        ?.takeIf {
-            it.declaration.requireQualifiedName(contextAware) !=
-                Unit::class.requireQualifiedName()
-        }
 }

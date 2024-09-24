@@ -3,10 +3,10 @@
 package software.amazon.lastmile.kotlin.inject.anvil
 
 import assertk.Assert
-import assertk.all
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import assertk.assertions.prop
+import assertk.assertions.messageContains
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -14,43 +14,14 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.tschuchort.compiletesting.KotlinCompilation
+import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 
 class MergeScopeParserTest {
-
-    @Test
-    fun `the scope can be parsed from a scope annotation with zero args`() {
-        compileInPlace(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-
-            @ContributesTo
-            @Singleton
-            interface ComponentInterface
-
-            @ContributesBinding
-            @Singleton
-            interface Binding : CharSequence
-            """,
-        ) { resolver ->
-            assertThat(resolver.clazz("software.amazon.test.ComponentInterface").scope()).isEqualTo(
-                fqName = "software.amazon.test.Singleton",
-                annotationFqName = "software.amazon.test.Singleton",
-                markerFqName = null,
-            )
-            assertThat(resolver.clazz("software.amazon.test.Binding").scope()).isEqualTo(
-                fqName = "software.amazon.test.Singleton",
-                annotationFqName = "software.amazon.test.Singleton",
-                markerFqName = null,
-            )
-        }
-    }
 
     @Test
     fun `the scope can be parsed from a @ContributesBinding annotation`() {
@@ -60,15 +31,22 @@ class MergeScopeParserTest {
     
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 
-            @ContributesBinding(scope = Singleton::class)
-            interface Binding : CharSequence
+            @ContributesBinding(scope = Unit::class)
+            interface Binding1 : CharSequence
+
+            @ContributesBinding(String::class)
+            interface Binding2 : CharSequence
+
+            @ContributesBinding(multibinding = true, scope = CharSequence::class)
+            interface Binding3 : CharSequence
             """,
         ) { resolver ->
-            assertThat(resolver.clazz("software.amazon.test.Binding").scope()).isEqualTo(
-                fqName = "software.amazon.test.Singleton",
-                annotationFqName = "software.amazon.test.Singleton",
-                markerFqName = null,
-            )
+            assertThat(resolver.clazz("software.amazon.test.Binding1").scope())
+                .isEqualTo("kotlin.Unit")
+            assertThat(resolver.clazz("software.amazon.test.Binding2").scope())
+                .isEqualTo("kotlin.String")
+            assertThat(resolver.clazz("software.amazon.test.Binding3").scope())
+                .isEqualTo("kotlin.CharSequence")
         }
     }
 
@@ -84,24 +62,14 @@ class MergeScopeParserTest {
             @ContributesTo(AppScope::class)
             interface ComponentInterface1
 
-            @ContributesTo(Singleton::class)
+            @ContributesTo(scope = Unit::class)
             interface ComponentInterface2
             """,
         ) { resolver ->
-            assertThat(
-                resolver.clazz("software.amazon.test.ComponentInterface1").scope(),
-            ).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = null,
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
-            assertThat(
-                resolver.clazz("software.amazon.test.ComponentInterface2").scope(),
-            ).isEqualTo(
-                fqName = "software.amazon.test.Singleton",
-                annotationFqName = "software.amazon.test.Singleton",
-                markerFqName = null,
-            )
+            assertThat(resolver.clazz("software.amazon.test.ComponentInterface1").scope())
+                .isEqualTo("software.amazon.lastmile.kotlin.inject.anvil.AppScope")
+            assertThat(resolver.clazz("software.amazon.test.ComponentInterface2").scope())
+                .isEqualTo("kotlin.Unit")
         }
     }
 
@@ -111,61 +79,25 @@ class MergeScopeParserTest {
             """
             package software.amazon.test
     
-            import me.tatarka.inject.annotations.Scope
             import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
             
-            @Scope
-            annotation class ChildScope
-
-            @ContributesSubcomponent(AppScope::class)
-            interface SubcomponentInterface1 {
-                @ContributesSubcomponent.Factory(String::class)
+            @ContributesSubcomponent(String::class)
+            @SingleIn(String::class)
+            interface SubcomponentInterface {
+                @ContributesSubcomponent.Factory(AppScope::class)
                 interface Factory {
-                    fun createSubcomponentInterface(): SubcomponentInterface1
-                }          
-            }
-
-            @ContributesSubcomponent
-            @Singleton
-            interface SubcomponentInterface2 {
-                @ContributesSubcomponent.Factory
-                @ChildScope
-                interface Factory {
-                    fun createSubcomponentInterface(): SubcomponentInterface2
+                    fun createSubcomponentInterface(): SubcomponentInterface
                 }          
             }
             """,
         ) { resolver ->
+            assertThat(resolver.clazz("software.amazon.test.SubcomponentInterface").scope())
+                .isEqualTo("kotlin.String")
             assertThat(
-                resolver.clazz("software.amazon.test.SubcomponentInterface1").scope(),
-            ).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = null,
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
-            assertThat(
-                resolver.clazz("software.amazon.test.SubcomponentInterface1.Factory").scope(),
-            ).isEqualTo(
-                fqName = "kotlin.String",
-                annotationFqName = null,
-                markerFqName = "kotlin.String",
-            )
-
-            assertThat(
-                resolver.clazz("software.amazon.test.SubcomponentInterface2").scope(),
-            ).isEqualTo(
-                fqName = "software.amazon.test.Singleton",
-                annotationFqName = "software.amazon.test.Singleton",
-                markerFqName = null,
-            )
-            assertThat(
-                resolver.clazz("software.amazon.test.SubcomponentInterface2.Factory").scope(),
-            ).isEqualTo(
-                fqName = "software.amazon.test.ChildScope",
-                annotationFqName = "software.amazon.test.ChildScope",
-                markerFqName = null,
-            )
+                resolver.clazz("software.amazon.test.SubcomponentInterface.Factory").scope(),
+            ).isEqualTo("software.amazon.lastmile.kotlin.inject.anvil.AppScope")
         }
     }
 
@@ -190,132 +122,38 @@ class MergeScopeParserTest {
             abstract class ComponentInterface2 : ComponentInterface2Merged
             """,
         ) { resolver ->
-            assertThat(
-                resolver.clazz("software.amazon.test.ComponentInterface1").scope(),
-            ).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = null,
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
-
-            assertThat(
-                resolver.clazz("software.amazon.test.ComponentInterface2").scope(),
-            ).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = null,
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
+            assertThat(resolver.clazz("software.amazon.test.ComponentInterface1").scope())
+                .isEqualTo("software.amazon.lastmile.kotlin.inject.anvil.AppScope")
+            assertThat(resolver.clazz("software.amazon.test.ComponentInterface2").scope())
+                .isEqualTo("software.amazon.lastmile.kotlin.inject.anvil.AppScope")
         }
     }
 
     @Test
-    fun `the scope can be parsed from a @ContributesBinding annotation without a parameter name`() {
+    fun `the scope can be different for kotlin-inject`() {
         compileInPlace(
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-
-            @ContributesBinding(Singleton::class)
-            interface Binding : CharSequence
-            """,
-        ) { resolver ->
-            assertThat(resolver.clazz("software.amazon.test.Binding").scope()).isEqualTo(
-                fqName = "software.amazon.test.Singleton",
-                annotationFqName = "software.amazon.test.Singleton",
-                markerFqName = null,
-            )
-        }
-    }
-
-    @Test
-    fun `the scope can be parsed from a scope annotation with a marker`() {
-        compileInPlace(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
-
-            @ContributesTo
-            @SingleIn(AppScope::class)
-            interface ComponentInterface
-
-            @ContributesBinding
-            @SingleIn(AppScope::class)
-            interface Binding : CharSequence
-            """,
-        ) { resolver ->
-            assertThat(resolver.clazz("software.amazon.test.ComponentInterface").scope()).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = "software.amazon.lastmile.kotlin.inject.anvil.SingleIn",
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
-
-            assertThat(resolver.clazz("software.amazon.test.Binding").scope()).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = "software.amazon.lastmile.kotlin.inject.anvil.SingleIn",
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
-        }
-    }
-
-    @Test
-    fun `the scope can be parsed from an annotation without explicit scope annotation`() {
-        compileInPlace(
-            """
-            package software.amazon.test
-    
+            import me.tatarka.inject.annotations.Scope
             import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
-
-            @ContributesBinding(AppScope::class)
-            interface Binding1 : CharSequence
-
-            @ContributesBinding(multibinding = true, scope = AppScope::class)
-            interface Binding2 : CharSequence
-            """,
-        ) { resolver ->
-            assertThat(resolver.clazz("software.amazon.test.Binding1").scope()).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = null,
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
-            assertThat(resolver.clazz("software.amazon.test.Binding2").scope()).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = null,
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
-        }
-    }
-
-    @Test
-    fun `the marker scope is used and a different actual scope can be used for kotlin-inject`() {
-        compileInPlace(
-            """
-            package software.amazon.test
-    
-            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            
+            @Scope
+            annotation class Singleton
 
             @ContributesBinding(AppScope::class)
             @Singleton
             interface Binding : CharSequence
             """,
         ) { resolver ->
-            assertThat(resolver.clazz("software.amazon.test.Binding").scope()).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = null,
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
+            assertThat(resolver.clazz("software.amazon.test.Binding").scope())
+                .isEqualTo("software.amazon.lastmile.kotlin.inject.anvil.AppScope")
         }
     }
 
     @Test
-    fun `the marker scope is used and a different actual scope can be used for kotlin-inject with a different marker`() {
+    fun `using two different scope parameters is forbidden`() {
         compileInPlace(
             """
             package software.amazon.test
@@ -324,16 +162,26 @@ class MergeScopeParserTest {
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
             import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
+            interface Interface1
+            interface Interface2
+
             @ContributesBinding(AppScope::class)
             @SingleIn(String::class)
-            interface Binding : CharSequence
+            interface Binding1 : Interface1
+
+            @ContributesBinding(AppScope::class, boundType = Interface1::class)
+            @ContributesBinding(String::class, boundType = Interface2::class)
+            interface Binding2 : Interface1, Interface2
             """,
+            exitCode = COMPILATION_ERROR,
         ) { resolver ->
-            assertThat(resolver.clazz("software.amazon.test.Binding").scope()).isEqualTo(
-                fqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-                annotationFqName = null,
-                markerFqName = "software.amazon.lastmile.kotlin.inject.anvil.AppScope",
-            )
+            assertFailure {
+                resolver.clazz("software.amazon.test.Binding1").scope()
+            }.messageContains("All scopes on annotations must be the same.")
+
+            assertFailure {
+                resolver.clazz("software.amazon.test.Binding2").scope()
+            }.messageContains("All scopes on annotations must be the same.")
         }
     }
 
@@ -354,6 +202,7 @@ class MergeScopeParserTest {
 
     private fun compileInPlace(
         @Language("kotlin") vararg sources: String,
+        exitCode: KotlinCompilation.ExitCode = OK,
         block: ContextAware.(Resolver) -> Unit,
     ) {
         Compilation()
@@ -361,21 +210,15 @@ class MergeScopeParserTest {
                 symbolProcessorProviders = setOf(symbolProcessorProvider(block)),
             )
             .compile(*sources) {
-                assertThat(exitCode).isEqualTo(OK)
+                assertThat(this.exitCode).isEqualTo(exitCode)
             }
     }
 
     private fun Resolver.clazz(name: String) = requireNotNull(getClassDeclarationByName(name))
 
-    private fun Assert<MergeScope>.isEqualTo(
-        fqName: String,
-        annotationFqName: String?,
-        markerFqName: String?,
-    ) {
-        all {
-            prop(MergeScope::fqName).isEqualTo(fqName)
-            prop(MergeScope::annotationFqName).isEqualTo(annotationFqName)
-            prop(MergeScope::markerFqName).isEqualTo(markerFqName)
-        }
+    private fun Assert<MergeScope>.isEqualTo(scopeFqName: String) {
+        transform {
+            requireNotNull(it.type.declaration.qualifiedName).asString()
+        }.isEqualTo(scopeFqName)
     }
 }

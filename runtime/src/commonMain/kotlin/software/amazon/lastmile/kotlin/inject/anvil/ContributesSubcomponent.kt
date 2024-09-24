@@ -101,31 +101,13 @@ import kotlin.reflect.KClass
  *     }
  * }
  * ```
- *
- *
- * ## Custom scopes
- *
- * If you use your own scope annotations without the references such as `AppScope::class`, then
- * you can use your scope directly on the class:
- * ```
- * @ContributesSubcomponent
- * @LoggedInScope
- * interface LoggedInComponent {
- *
- *     @ContributesSubcomponent.Factory
- *     @Singleton
- *     interface Factory {
- *         fun createLoggedInComponent(): LoggedInComponent
- *     }
- * }
- * ```
  */
 @Target(CLASS)
 public annotation class ContributesSubcomponent(
     /**
      * The scope in which to include this contributed component interface.
      */
-    val scope: KClass<*> = Unit::class,
+    val scope: KClass<*>,
 ) {
     /**
      * A factory for the contributed subcomponent.
@@ -140,6 +122,6 @@ public annotation class ContributesSubcomponent(
         /**
          * The scope in which to include this contributed component interface.
          */
-        val scope: KClass<*> = Unit::class,
+        val scope: KClass<*>,
     )
 }

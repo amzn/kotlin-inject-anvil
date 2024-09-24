@@ -38,7 +38,7 @@ import kotlin.reflect.KClass
  *
  * @Inject
  * @SingleIn(AppScope::class)
- * @ContributesBinding
+ * @ContributesBinding(AppScope::class)
  * class RealAuthenticator : Authenticator
  * ```
  * Will generate:

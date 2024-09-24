@@ -11,22 +11,11 @@ import kotlin.reflect.KClass
  * @ContributesTo(AppScope::class)
  * interface ComponentInterface { .. }
  * ```
- *
- *
- * ## Custom scopes
- *
- * If you use your own scope annotations without the references such as `AppScope::class`, then
- * you can use your scope directly on the class:
- * ```
- * @ContributesTo
- * @Singleton
- * interface ComponentInterface { .. }
- * ```
  */
 @Target(CLASS)
 public annotation class ContributesTo(
     /**
      * The scope in which to include this contributed component interface.
      */
-    val scope: KClass<*> = Unit::class,
+    val scope: KClass<*>,
 )

@@ -13,6 +13,7 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
@@ -22,7 +23,6 @@ import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
-import software.amazon.lastmile.kotlin.inject.anvil.MergeScope
 import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
 
@@ -117,14 +117,7 @@ internal class ContributesSubcomponentProcessor(
         factoryInterface: KSClassDeclaration,
         generatedFactoryInterface: KSClassDeclaration,
     ): ClassName {
-        val scope = requireNotNull(
-            value = subcomponent.annotations
-                .firstOrNull { isScopeAnnotation(it) }
-                ?.let { MergeScope(this, it) },
-            symbol = subcomponent,
-        ) {
-            "A scope like @SingleIn(Abc::class) is missing."
-        }
+        val kotlinInjectScope = requireKotlinInjectScope(subcomponent)
 
         val function = factoryInterface.factoryFunctions().single()
 
@@ -142,22 +135,16 @@ internal class ContributesSubcomponentProcessor(
                 TypeSpec
                     .classBuilder(finalComponentClassName)
                     .addAnnotation(Component::class)
-                    .apply {
-                        val scopeOnSubcomponentAnnotation = subcomponent.scope()
-                        if (scopeOnSubcomponentAnnotation.markerFqName != null) {
-                            addAnnotation(
-                                AnnotationSpec.builder(MergeComponent::class)
-                                    .addMember(
-                                        "scope = %T::class",
-                                        ClassName.bestGuess(scopeOnSubcomponentAnnotation.fqName),
-                                    )
-                                    .build(),
+                    .addAnnotation(
+                        AnnotationSpec
+                            .builder(MergeComponent::class)
+                            .addMember(
+                                "scope = %T::class",
+                                subcomponent.scope().type.toClassName(),
                             )
-                        } else {
-                            addAnnotation(MergeComponent::class)
-                        }
-                    }
-                    .addAnnotation(scope.toAnnotationSpec())
+                            .build(),
+                    )
+                    .addAnnotation(kotlinInjectScope.toAnnotationSpec())
                     .addOriginAnnotation(subcomponent)
                     .addModifiers(KModifier.ABSTRACT)
                     .primaryConstructor(

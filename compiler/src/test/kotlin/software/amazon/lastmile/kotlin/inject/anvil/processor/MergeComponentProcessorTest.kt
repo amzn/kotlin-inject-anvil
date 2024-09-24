@@ -16,61 +16,11 @@ import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.inner
 import software.amazon.lastmile.kotlin.inject.anvil.mergedComponent
-import software.amazon.lastmile.kotlin.inject.anvil.otherScopeSource
 
 class MergeComponentProcessorTest {
 
     @Test
     fun `component interfaces are merged`() {
-        compile(
-            """
-            package software.amazon.test
-                            
-            import me.tatarka.inject.annotations.Component
-            import me.tatarka.inject.annotations.Inject
-            import me.tatarka.inject.annotations.Provides
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
-            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
-
-            interface Base
-
-            @Inject
-            @OtherScope
-            class Impl : Base {
-            
-                @ContributesTo
-                @OtherScope
-                interface Component {
-                    @Provides fun provideImpl(impl: Impl): Base = impl
-
-                    val string: String
-                }
-            }
-
-            @ContributesTo
-            @OtherScope
-            interface StringComponent {
-                @Provides fun provideString(): String = "abc"
-            }
-
-            @Component
-            @MergeComponent
-            @OtherScope
-            abstract class ComponentInterface : ComponentInterfaceMerged {
-                abstract val base: Base
-            }
-            """,
-            otherScopeSource,
-        ) {
-            assertThat(componentInterface.mergedComponent).isNotNull()
-
-            assertThat(stringComponent.isAssignableFrom(componentInterface)).isTrue()
-            assertThat(implComponent.isAssignableFrom(componentInterface)).isTrue()
-        }
-    }
-
-    @Test
-    fun `component interfaces are merged using marker scopes`() {
         compile(
             """
             package software.amazon.test
@@ -126,17 +76,18 @@ class MergeComponentProcessorTest {
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
             interface Base
 
             @Inject
-            @OtherScope
+            @SingleIn(AppScope::class)
             class Impl : Base {
             
-                @ContributesTo
-                @OtherScope
+                @ContributesTo(AppScope::class)
                 interface Component {
                     @Provides fun provideImpl(impl: Impl): Base = impl
 
@@ -144,20 +95,18 @@ class MergeComponentProcessorTest {
                 }
             }
 
-            @ContributesTo
-            @OtherScope
+            @ContributesTo(AppScope::class)
             interface StringComponent {
                 @Provides fun provideString(): String = "abc"
             }
 
             interface ComponentInterface {
                 @Component
-                @MergeComponent
-                @OtherScope
+                @MergeComponent(AppScope::class)
+                @SingleIn(AppScope::class)
                 interface Inner : ComponentInterfaceInnerMerged
             }
             """,
-            otherScopeSource,
         ) {
             assertThat(componentInterface.inner.mergedComponent).isNotNull()
 
@@ -175,46 +124,10 @@ class MergeComponentProcessorTest {
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
-
-            interface Base
-
-            @Inject
-            @OtherScope
-            @ContributesBinding
-            class Impl : Base
-
-            @Component
-            @MergeComponent
-            @OtherScope
-            abstract class ComponentInterface : ComponentInterfaceMerged {
-                abstract val base: Base
-            }
-            """,
-            otherScopeSource,
-        ) {
-            assertThat(componentInterface.mergedComponent).isNotNull()
-
-            assertThat(
-                classLoader.loadClass("$LOOKUP_PACKAGE.SoftwareAmazonTestImpl")
-                    .isAssignableFrom(componentInterface),
-            ).isTrue()
-        }
-    }
-
-    @Test
-    fun `contributed bindings are merged using marker scopes`() {
-        compile(
-            """
-            package software.amazon.test
-                            
-            import me.tatarka.inject.annotations.Component
-            import me.tatarka.inject.annotations.Inject
-            import me.tatarka.inject.annotations.Provides
             import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
             interface Base
 
@@ -224,6 +137,7 @@ class MergeComponentProcessorTest {
 
             @Component
             @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
             }
@@ -246,16 +160,17 @@ class MergeComponentProcessorTest {
                             
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
             interface Base
 
             @Inject
-            @OtherScope
+            @SingleIn(AppScope::class)
             class Impl : Base {
             
-                @ContributesTo
-                @OtherScope
+                @ContributesTo(AppScope::class)
                 interface Component {
                     @Provides fun provideImpl(impl: Impl): Base = impl
 
@@ -263,7 +178,6 @@ class MergeComponentProcessorTest {
                 }
             }
             """,
-            otherScopeSource,
         )
 
         compile(
@@ -273,18 +187,19 @@ class MergeComponentProcessorTest {
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            @ContributesTo
-            @OtherScope
+            @ContributesTo(AppScope::class)
             interface StringComponent {
                 @Provides fun provideString(): String = "abc"
             }
 
             @Component
-            @MergeComponent
-            @OtherScope
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
             }
@@ -299,28 +214,6 @@ class MergeComponentProcessorTest {
     }
 
     @Test
-    fun `a scope must be present`() {
-        compile(
-            """
-            package software.amazon.test
-                            
-            import me.tatarka.inject.annotations.Component
-            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
-
-            @Component
-            @MergeComponent
-            abstract class ComponentInterface : ComponentInterfaceMerged
-            """,
-            exitCode = COMPILATION_ERROR,
-        ) {
-            assertThat(messages).contains(
-                "Couldn't find scope for ComponentInterface. For unscoped " +
-                    "objects it is required to specify the target scope on the annotation.",
-            )
-        }
-    }
-
-    @Test
     fun `component interfaces with a different scope are not merged`() {
         compile(
             """
@@ -329,36 +222,35 @@ class MergeComponentProcessorTest {
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
             interface Base
 
             @Inject
-            @OtherScope
+            @SingleIn(AppScope::class)
             class Impl : Base {
             
-                @ContributesTo
-                @OtherScope
+                @ContributesTo(AppScope::class)
                 interface Component {
                     @Provides fun provideImpl(impl: Impl): Base = impl
                 }
             }
 
-            @ContributesTo
-            @OtherScope2
+            @ContributesTo(Unit::class)
             interface StringComponent {
                 @Provides fun provideString(): String = "abc"
             }
 
             @Component
-            @MergeComponent
-            @OtherScope
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
             }
             """,
-            otherScopeSource,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 
@@ -376,36 +268,35 @@ class MergeComponentProcessorTest {
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
             interface Base
 
             @Inject
-            @OtherScope
+            @SingleIn(AppScope::class)
             class Impl : Base {
             
-                @ContributesTo
-                @OtherScope
+                @ContributesTo(AppScope::class)
                 interface Component {
                     @Provides fun provideImpl(impl: Impl): Base = impl
                 }
             }
 
-            @ContributesTo
-            @OtherScope
+            @ContributesTo(AppScope::class)
             interface StringComponent {
                 val string: String
             }
 
             @Component
-            @MergeComponent(exclude = [StringComponent::class])
-            @OtherScope
+            @MergeComponent(AppScope::class, exclude = [StringComponent::class])
+            @SingleIn(AppScope::class)
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
             }
             """,
-            otherScopeSource,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 
@@ -423,36 +314,35 @@ class MergeComponentProcessorTest {
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
             interface Base
 
             @Inject
-            @OtherScope
+            @SingleIn(AppScope::class)
             class Impl : Base {
             
-                @ContributesTo
-                @OtherScope
+                @ContributesTo(AppScope::class)
                 interface Component {
                     @Provides fun provideImpl(impl: Impl): Base = impl
                 }
             }
 
-            @ContributesTo
-            @OtherScope
+            @ContributesTo(AppScope::class)
             interface StringComponent {
                 val string: String
             }
 
             @Component
-            @MergeComponent(OtherScope::class, [StringComponent::class])
-            @OtherScope
+            @MergeComponent(AppScope::class, [StringComponent::class])
+            @SingleIn(AppScope::class)
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
             }
             """,
-            otherScopeSource,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 
@@ -470,19 +360,21 @@ class MergeComponentProcessorTest {
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
             interface Base
 
             @Inject
-            @Singleton
-            @ContributesBinding
+            @SingleIn(AppScope::class)
+            @ContributesBinding(AppScope::class)
             class Impl : Base
 
             @Component
-            @MergeComponent(exclude = [Impl::class])
-            @Singleton
+            @MergeComponent(AppScope::class, exclude = [Impl::class])
+            @SingleIn(AppScope::class)
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
             }
@@ -505,38 +397,39 @@ class MergeComponentProcessorTest {
             import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
+            import me.tatarka.inject.annotations.Scope
             import software.amazon.lastmile.kotlin.inject.anvil.AppScope
             import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
 
+            @Scope
+            annotation class Singleton
+
             interface Base
 
             @Inject
-            @OtherScope
+            @Singleton
             class Impl : Base {
             
                 @ContributesTo(AppScope::class)
-                @OtherScope
                 interface Component {
                     @Provides fun provideImpl(impl: Impl): Base = impl
                 }
             }
 
             // Note this is contributed to a different scope.
-            @ContributesTo
-            @OtherScope
+            @ContributesTo(Unit::class)
             interface StringComponent {
                 @Provides fun provideString(): String = "abc"
             }
 
             @Component
             @MergeComponent(AppScope::class)
-            @OtherScope
+            @Singleton
             abstract class ComponentInterface : ComponentInterfaceMerged {
                 abstract val base: Base
             }
             """,
-            otherScopeSource,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 

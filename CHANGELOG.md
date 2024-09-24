@@ -6,6 +6,8 @@
 
 ### Changed
 
+* **BREAKING CHANGE:** Enforce scope parameter on all `@Contributes*` annotations and stop using the kotlin-inject scope implicitly, see #36.
+
 ### Deprecated
 
 ### Removed
