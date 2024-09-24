@@ -5,7 +5,7 @@ package software.amazon.lastmile.kotlin.inject.anvil
 import com.tschuchort.compiletesting.JvmCompilationResult
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
-import java.lang.reflect.Method
+import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 internal val JvmCompilationResult.componentInterface: Class<*>
@@ -47,13 +47,11 @@ private val Class<*>.propertyClass: Class<*>
             "Kt",
     )
 
-internal val Class<*>.propertyMethodGetter: Method
-    get() = propertyClass.methods
-        .filter { Modifier.isStatic(it.modifiers) }
-        .single { '$' !in it.name }
+internal val Class<*>.generatedProperty: Field
+    get() = propertyClass.declaredFields.single().also { it.isAccessible = true }
 
 internal val Class<*>.propertyAnnotations: Array<out Annotation>
-    get() = propertyClass.methods
+    get() = propertyClass.declaredMethods
         .filter { Modifier.isStatic(it.modifiers) }
         .single { it.name.endsWith("\$annotations") }
         .annotations
