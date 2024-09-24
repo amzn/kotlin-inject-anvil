@@ -219,7 +219,7 @@ A [sample project](sample) for Android and iOS is available.
 ## Talk
 
 The idea and more background about this library is covered in this
-[public talk](https://ralf-wondratschek.com/presentation/extending-kotlin-inject.html).
+[public talk](https://ralf-wondratschek.com/presentation/extending-kotlin-inject-nyc.html).
 
 ## Advanced options
 
