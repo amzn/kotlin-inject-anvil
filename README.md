@@ -47,7 +47,7 @@ dependencies {
     commonMainImplementation "software.amazon.lastmile.kotlin.inject.anvil:runtime-optional:$version"
 }
 ```
-For details how to setup KSP itself for multiplatform projects see the
+For details how to setup KSP itself for multiplatform projects, see the
 [official documentation](https://kotlinlang.org/docs/ksp-multiplatform.html). The setup for
 `kotlin-inject` is described [here](https://github.com/evant/kotlin-inject).
 
@@ -152,7 +152,7 @@ For more details on usage of the annotation and behavior
 
 ### Merging
 
-With `kotlin-inject` components are defined similar to the one below in order to instantiate your
+With `kotlin-inject`, components are defined similar to the one below in order to instantiate your
 object graph at runtime:
 ```kotlin
 @Component
