@@ -5,14 +5,15 @@
 
 [kotlin-inject](https://github.com/evant/kotlin-inject) is a compile-time dependency injection
 framework for Kotlin Multiplatform similar to Dagger 2 for Java.
-[Anvil](https://github.com/square/anvil) extends Dagger 2 to simplify dependency injection. This
-project provides a similar feature set for the `kotlin-inject` framework.
+[Anvil](https://github.com/square/anvil) extends Dagger 2 to simplify dependency injection.
 
-The extensions provided by `kotlin-inject-anvil` allow you to contribute and automatically merge
-component interfaces without explicit references in code.
+This project provides a similar feature set for the `kotlin-inject` framework. The extensions provided
+by `kotlin-inject-anvil` allow you to contribute and automatically merge component interfaces without explicit
+references in code.
+
 ```kotlin
 @ContributesTo(AppScope::class)
-interface AppIdComponent {
+interface NameComponent {
     @Provides
     fun provideAppId(): String = "demo app"
 }
@@ -23,15 +24,19 @@ interface AppIdComponent {
 class RealAuthenticator : Authenticator
 
 // The final kotlin-inject component.
+//  see the section on "Usage > Merging" to understand
+//  how AppComponentMerged is generated and must be used.
 @Component
 @MergeComponent(AppScope::class)
 @SingleIn(AppScope::class)
 interface AppComponent : AppComponentMerged
 ```
-The generated code will ensure that `AppIdComponent` is a super type of `AppComponent` and the
-provider method is known to the object graph. A binding for `RealAuthenticator` will be generated
-and the type `Authenticator` can safely be injected anywhere. Note that neither `AppIdComponent`
-nor `RealAuthenticator` are referenced anywhere else.
+From the above example code snippet:
+
+* `NameComponent` will be made a super type of `AppComponent` and the
+provider method is known to the object graph, so you can inject and use AppId anywhere.
+* A binding for `RealAuthenticator` will be generated and the type `Authenticator` can safely be injected anywhere.
+* Note that neither `NameComponent`nor `RealAuthenticator` need to be referenced anywhere else in your code.
 
 ## Setup
 
@@ -47,9 +52,10 @@ dependencies {
     commonMainImplementation "software.amazon.lastmile.kotlin.inject.anvil:runtime-optional:$version"
 }
 ```
+
+You should setup kotlin-inject as described in the [official docs](https://github.com/evant/kotlin-inject).
 For details how to setup KSP itself for multiplatform projects, see the
-[official documentation](https://kotlinlang.org/docs/ksp-multiplatform.html). The setup for
-`kotlin-inject` is described [here](https://github.com/evant/kotlin-inject).
+[official documentation](https://kotlinlang.org/docs/ksp-multiplatform.html).
 
 #### Snapshot builds
 
@@ -69,7 +75,7 @@ maven {
 Component interfaces can be contributed using the `@ContributesTo` annotation:
 ```kotlin
 @ContributesTo(AppScope::class)
-interface AppIdComponent {
+interface NameComponent {
     @Provides
     fun provideAppId(): String = "demo app"
 }
