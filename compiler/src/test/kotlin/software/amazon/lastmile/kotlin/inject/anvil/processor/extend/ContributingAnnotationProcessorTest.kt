@@ -10,9 +10,9 @@ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.contributesRenderer
+import software.amazon.lastmile.kotlin.inject.anvil.generatedProperty
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import software.amazon.lastmile.kotlin.inject.anvil.propertyAnnotations
-import software.amazon.lastmile.kotlin.inject.anvil.propertyMethodGetter
 import kotlin.reflect.KClass
 
 class ContributingAnnotationProcessorTest {
@@ -31,13 +31,13 @@ class ContributingAnnotationProcessorTest {
             annotation class ContributesRenderer
             """,
         ) {
-            val propertyGetter = contributesRenderer.propertyMethodGetter
+            val property = contributesRenderer.generatedProperty
 
             // The type parameter gets erased at runtime.
-            assertThat(propertyGetter.returnType.kotlin).isEqualTo(KClass::class)
+            assertThat(property.type.kotlin).isEqualTo(KClass::class)
 
             // Checks the returned type.
-            assertThat(propertyGetter.invoke(null)).isEqualTo(contributesRenderer.kotlin)
+            assertThat(property.get(null)).isEqualTo(contributesRenderer.kotlin)
 
             // The @Origin annotation is present.
             assertThat(

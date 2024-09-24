@@ -72,7 +72,7 @@ internal class ContributingAnnotationProcessor(
                     .builder(
                         name = clazz.safeClassName.decapitalize(),
                         type = KClass::class.asClassName().parameterizedBy(clazz.toClassName()),
-                        modifiers = setOf(KModifier.PUBLIC),
+                        modifiers = setOf(KModifier.PRIVATE),
                     )
                     .initializer("%T::class", clazz.toClassName())
                     .addOriginatingKSFile(clazz.requireContainingFile())

@@ -7,6 +7,7 @@
 ### Changed
 
 * **BREAKING CHANGE:** Enforce scope parameter on all `@Contributes*` annotations and stop using the kotlin-inject scope implicitly, see #36.
+* Made the generated property when using `@ContributingAnnotation` private. There is no reason to expose the property on the compile classpath.
 
 ### Deprecated
 
