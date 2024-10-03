@@ -13,7 +13,7 @@ references in code.
 
 ```kotlin
 @ContributesTo(AppScope::class)
-interface NameComponent {
+interface AppIdComponent {
     @Provides
     fun provideAppId(): String = "demo app"
 }
@@ -33,10 +33,10 @@ interface AppComponent : AppComponentMerged
 ```
 From the above example code snippet:
 
-* `NameComponent` will be made a super type of `AppComponent` and the
+* `AppIdComponent` will be made a super type of `AppComponent` and the
 provider method is known to the object graph, so you can inject and use AppId anywhere.
 * A binding for `RealAuthenticator` will be generated and the type `Authenticator` can safely be injected anywhere.
-* Note that neither `NameComponent`nor `RealAuthenticator` need to be referenced anywhere else in your code.
+* Note that neither `AppIdComponent` nor `RealAuthenticator` need to be referenced anywhere else in your code.
 
 ## Setup
 
@@ -75,7 +75,7 @@ maven {
 Component interfaces can be contributed using the `@ContributesTo` annotation:
 ```kotlin
 @ContributesTo(AppScope::class)
-interface NameComponent {
+interface AppIdComponent {
     @Provides
     fun provideAppId(): String = "demo app"
 }
