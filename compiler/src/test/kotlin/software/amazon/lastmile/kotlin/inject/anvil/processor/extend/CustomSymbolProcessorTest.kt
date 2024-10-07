@@ -21,12 +21,14 @@ import com.squareup.kotlinpoet.ksp.writeTo
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
 import me.tatarka.inject.annotations.Provides
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import software.amazon.lastmile.kotlin.inject.anvil.Compilation
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import software.amazon.lastmile.kotlin.inject.anvil.OPTION_CONTRIBUTING_ANNOTATIONS
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.mergedComponent
@@ -153,6 +155,55 @@ class CustomSymbolProcessorTest {
             }
     }
 
+    @Test
+    fun `custom contribution can be excluded in the merge component`() {
+        // The custom symbol processor will generate a component interface that is contributed
+        // to the final component. The generated component interface has a provider method
+        // for the type String.
+        //
+        // Notice that we contribute two renderers, which would result in duplicate bindings:
+        // e: Error occurred in KSP, check log for detail
+        // e: [ksp] /var/folders/rs/q_sbtnln4xzb4h17_tdwq2g00000gr/T/Kotlin-Compilation15827920485744140694/ksp/sources/kotlin/software/amazon/test/Renderer2Component.kt:14: Cannot provide: String
+        // e: [ksp] /var/folders/rs/q_sbtnln4xzb4h17_tdwq2g00000gr/T/Kotlin-Compilation15827920485744140694/ksp/sources/kotlin/software/amazon/test/Renderer1Component.kt:14: as it is already provided
+        //
+        // But since one renderer is excluded the duplicate binding doesn't happen.
+        Compilation()
+            .configureKotlinInjectAnvilProcessor(
+                symbolProcessorProviders = setOf(symbolProcessorProvider),
+            )
+            .compile(
+                """
+                package software.amazon.test
+        
+                import me.tatarka.inject.annotations.Component
+                import software.amazon.lastmile.kotlin.inject.anvil.extend.ContributingAnnotation
+                import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+                import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+                import kotlin.annotation.AnnotationTarget.CLASS
+
+                @ContributingAnnotation
+                annotation class ContributesRenderer
+                
+                @ContributesRenderer
+                class Renderer1
+                
+                @ContributesRenderer
+                class Renderer2
+    
+                @Component
+                @MergeComponent(Unit::class, exclude = [Renderer2::class])
+                @SingleIn(Unit::class)
+                interface ComponentInterface : ComponentInterfaceMerged {
+                    val string: String
+                }
+                """,
+            )
+            .run {
+                assertThat(exitCode).isEqualTo(OK)
+                assertThat(componentInterface.mergedComponent).isNotNull()
+            }
+    }
+
     private val symbolProcessorProvider = object : SymbolProcessorProvider {
         override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
             return object : SymbolProcessor {
@@ -161,15 +212,17 @@ class CustomSymbolProcessorTest {
                         .getSymbolsWithAnnotation("software.amazon.test.ContributesRenderer")
                         .filterIsInstance<KSClassDeclaration>()
                         .forEach { clazz ->
+                            val key = clazz.simpleName.asString()
                             val componentClassName = ClassName(
                                 "software.amazon.test",
-                                "RendererComponent",
+                                "${key}Component",
                             )
                             val fileSpec = FileSpec.builder(componentClassName)
                                 .addType(
                                     TypeSpec
                                         .interfaceBuilder(componentClassName)
                                         .addOriginatingKSFile(clazz.containingFile!!)
+                                        .addOriginAnnotation(clazz)
                                         .addAnnotation(
                                             AnnotationSpec.builder(ContributesTo::class)
                                                 .addMember("Unit::class")
@@ -182,7 +235,7 @@ class CustomSymbolProcessorTest {
                                         )
                                         .addFunction(
                                             FunSpec
-                                                .builder("provideString")
+                                                .builder("provideString$key")
                                                 .addAnnotation(Provides::class)
                                                 .returns(String::class)
                                                 .addCode("return \"renderer\"")

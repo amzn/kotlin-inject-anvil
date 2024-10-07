@@ -151,9 +151,22 @@ internal class MergeComponentProcessor(
         val componentInterfaces = resolver.getDeclarationsFromPackage(LOOKUP_PACKAGE)
             .filterIsInstance<KSClassDeclaration>()
             .filter { contributedInterface ->
-                val origin = contributedInterface.origin()
-                origin.scope() == scope &&
+                val originChain = contributedInterface.originChain().toList()
+
+                // Check that at least one of the scopes in the chain is matching the target
+                // scope.
+                val isSameScope = originChain.any { origin ->
+                    origin.scopeOrNull() == scope
+                }
+                if (!isSameScope) {
+                    return@filter false
+                }
+
+                // The scope matches, now check that none of the classes in the chain were
+                // excluded.
+                originChain.all { origin ->
                     origin.requireQualifiedName() !in excludeNames
+                }
             }
             .filter {
                 !it.isAnnotationPresent(Subcomponent::class) ||
@@ -214,5 +227,11 @@ internal class MergeComponentProcessor(
         return (argument?.value as? List<KSType>)
             ?.map { it.declaration as KSClassDeclaration }
             ?: emptyList()
+    }
+
+    private fun KSClassDeclaration.originChain(): Sequence<KSClassDeclaration> {
+        return generateSequence(origin()) { clazz ->
+            clazz.originOrNull()
+        }
     }
 }
