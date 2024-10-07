@@ -6,9 +6,6 @@
 
 ### Changed
 
-* **BREAKING CHANGE:** Enforce scope parameter on all `@Contributes*` annotations and stop using the kotlin-inject scope implicitly, see #36.
-* Made the generated property when using `@ContributingAnnotation` private. There is no reason to expose the property on the compile classpath.
-
 ### Deprecated
 
 ### Removed
@@ -18,6 +15,19 @@
 ### Security
 
 ### Other Notes & Contributions
+
+
+## [0.0.5] - 2024-10-07
+
+### Changed
+
+* **BREAKING CHANGE:** Enforce scope parameter on all `@Contributes*` annotations and stop using the kotlin-inject scope implicitly, see #36.
+* Made the generated property when using `@ContributingAnnotation` private. There is no reason to expose the property on the compile classpath.
+* Support excluding contributions from custom annotations as long as they have the `@Origin` annotation added to generated code.
+
+### Fixed
+
+* Allow adding annotations from `:runtime-optional` to abstract properties.
 
 
 ## [0.0.4] - 2024-09-16
@@ -56,7 +66,8 @@
 
 - Initial release.
 
-[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.0.4...HEAD
+[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.0.5...HEAD
+[0.0.5]: https://github.com/square/anvil/releases/tag/0.0.5
 [0.0.4]: https://github.com/square/anvil/releases/tag/0.0.4
 [0.0.3]: https://github.com/square/anvil/releases/tag/0.0.3
 [0.0.2]: https://github.com/square/anvil/releases/tag/0.0.2
