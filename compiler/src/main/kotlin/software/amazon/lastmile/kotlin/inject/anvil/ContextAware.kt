@@ -75,7 +75,7 @@ internal interface ContextAware {
         }
     }
 
-    private fun KSClassDeclaration.scopeOrNull(): MergeScope? {
+    fun KSClassDeclaration.scopeOrNull(): MergeScope? {
         val annotationsWithScopeParameter = annotations.filter { it.hasScopeParameter() }
             .toList()
             .ifEmpty { return null }
@@ -129,13 +129,19 @@ internal interface ContextAware {
             ?.let { it.value as? KSType }
     }
 
-    fun KSClassDeclaration.origin(): KSClassDeclaration {
-        val annotation = findAnnotation(Origin::class)
+    fun KSClassDeclaration.originOrNull(): KSClassDeclaration? {
+        val annotation = findAnnotations(Origin::class).singleOrNull() ?: return null
 
         val argument = annotation.arguments.firstOrNull { it.name?.asString() == "value" }
             ?: annotation.arguments.first()
 
         return (argument.value as KSType).declaration as KSClassDeclaration
+    }
+
+    fun KSClassDeclaration.origin(): KSClassDeclaration {
+        return requireNotNull(originOrNull(), this) {
+            "Origin annotation not found."
+        }
     }
 
     fun KSClassDeclaration.contributedSubcomponent(): KSClassDeclaration {
