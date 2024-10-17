@@ -39,7 +39,9 @@ open class LibraryKmpPlugin : Plugin<Project> {
     private fun Project.enableExpectActualClasses() {
         kotlin.targets.configureEach { target ->
             target.compilations.configureEach { compilation ->
-                compilation.compilerOptions.options.freeCompilerArgs.add("-Xexpect-actual-classes")
+                compilation.compileTaskProvider.configure { task ->
+                    task.compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
             }
         }
     }
@@ -93,24 +95,21 @@ open class LibraryKmpPlugin : Plugin<Project> {
         uniqueModuleName?.let { moduleName ->
             kotlin.targets.configureEach { target ->
                 target.compilations.configureEach { compilation ->
-                    compilation
-                        .compilerOptions
-                        .options
-                        .let {
-                            when (it) {
-                                is KotlinNativeCompilerOptions -> {
-                                    it.moduleName.set(moduleName)
-                                }
+                    compilation.compileTaskProvider.configure {
+                        when (val compilerOptions = it.compilerOptions) {
+                            is KotlinNativeCompilerOptions -> {
+                                compilerOptions.moduleName.set(moduleName)
+                            }
 
-                                is KotlinJvmCompilerOptions -> {
-                                    it.moduleName.set(moduleName)
-                                }
+                            is KotlinJvmCompilerOptions -> {
+                                compilerOptions.moduleName.set(moduleName)
+                            }
 
-                                is KotlinJsCompilerOptions -> {
-                                    it.moduleName.set(moduleName)
-                                }
+                            is KotlinJsCompilerOptions -> {
+                                compilerOptions.moduleName.set(moduleName)
                             }
                         }
+                    }
                 }
             }
         }
