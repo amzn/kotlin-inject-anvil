@@ -210,7 +210,11 @@ class MergeScopeParserTest {
                 symbolProcessorProviders = setOf(symbolProcessorProvider(block)),
             )
             .compile(*sources) {
-                assertThat(this.exitCode).isEqualTo(exitCode)
+                if (exitCode == OK) {
+                    assertThat(exitCode).isOk()
+                } else {
+                    assertThat(exitCode).isError()
+                }
             }
     }
 

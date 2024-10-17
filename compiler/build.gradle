@@ -32,12 +32,8 @@ dependencies {
     testRuntimeOnly libs.junit.jupiter.launcher
 
     // Added so that the SymbolProcessor is picked up in tests.
-    testImplementation(libs.kotlin.inject.ksp.bugfix) {
-        // TODO: Remove this when upgrading to Kotlin 2.0
-        exclude group: 'com.google.devtools.ksp', module: 'symbol-processing-api'
-    }
+    testImplementation libs.kotlin.inject.ksp
 
     // Bump transitive dependency.
-    // TODO: Enable with KSP2 and Kotlin 2.0 again.
-    // testImplementation libs.ksp
+    testImplementation libs.ksp
 }

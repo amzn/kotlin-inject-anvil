@@ -8,10 +8,7 @@ import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.addPreviousResultToClasspath
-import com.tschuchort.compiletesting.kspArgs
-import com.tschuchort.compiletesting.kspIncremental
-import com.tschuchort.compiletesting.kspWithCompilation
-import com.tschuchort.compiletesting.symbolProcessorProviders
+import com.tschuchort.compiletesting.configureKsp
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.JvmTarget
@@ -44,16 +41,25 @@ class Compilation internal constructor(
         processorsConfigured = true
 
         with(kotlinCompilation) {
-            this.symbolProcessorProviders += ServiceLoader.load(
-                SymbolProcessorProvider::class.java,
-                SymbolProcessorProvider::class.java.classLoader,
-            )
-            this.symbolProcessorProviders += symbolProcessorProviders
-            this.kspArgs.putAll(processorOptions)
+            val useKsp2 = false
 
-            // Run KSP embedded directly within this kotlinc invocation
-            kspWithCompilation = true
-            kspIncremental = true
+            if (!useKsp2) {
+                languageVersion = "1.9"
+            }
+
+            configureKsp(useKsp2 = useKsp2) {
+                this.symbolProcessorProviders += ServiceLoader.load(
+                    SymbolProcessorProvider::class.java,
+                    SymbolProcessorProvider::class.java.classLoader,
+                )
+
+                this.symbolProcessorProviders += symbolProcessorProviders
+                this.processorOptions.putAll(processorOptions)
+
+                // Run KSP embedded directly within this kotlinc invocation
+                this.withCompilation = true
+                this.incremental = true
+            }
         }
     }
 
