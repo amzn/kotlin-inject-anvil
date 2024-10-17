@@ -61,6 +61,7 @@ class ContributesSubcomponentProcessorTest {
             }
             """,
             scopesSource,
+            useKsp2 = false,
         ) {
             val component = componentInterface.newComponent<Any>()
             val childComponent = component::class.java.methods
@@ -133,7 +134,7 @@ class ContributesSubcomponentProcessorTest {
                 addPreviousCompilationResult(previousResult2)
                 addPreviousCompilationResult(previousResult3)
             }
-            .configureKotlinInjectAnvilProcessor()
+            .configureKotlinInjectAnvilProcessor(useKsp2 = false)
             .compile(
                 """
                 package software.amazon.test
@@ -208,6 +209,7 @@ class ContributesSubcomponentProcessorTest {
             }
             """,
             scopesSource,
+            useKsp2 = false,
         ) {
             val components = listOf<Any>(
                 componentInterface.newComponent(),
@@ -309,6 +311,7 @@ class ContributesSubcomponentProcessorTest {
             }
             """,
             scopesSource,
+            useKsp2 = false,
         ) {
             val component = componentInterface.newComponent<Any>()
             val childComponent = component::class.java.methods
@@ -366,6 +369,7 @@ class ContributesSubcomponentProcessorTest {
             }
             """,
             scopesSource,
+            useKsp2 = false,
         ) {
             val component = componentInterface.newComponent<Any>()
             val childComponent = component::class.java.methods

@@ -34,6 +34,7 @@ class Compilation internal constructor(
     fun configureKotlinInjectAnvilProcessor(
         processorOptions: Map<String, String> = emptyMap(),
         symbolProcessorProviders: Set<SymbolProcessorProvider> = emptySet(),
+        useKsp2: Boolean = true,
     ): Compilation = apply {
         checkNotCompiled()
         check(!processorsConfigured) { "Processor should not be configured twice." }
@@ -41,8 +42,6 @@ class Compilation internal constructor(
         processorsConfigured = true
 
         with(kotlinCompilation) {
-            val useKsp2 = false
-
             if (!useKsp2) {
                 languageVersion = "1.9"
             }
@@ -144,6 +143,7 @@ fun compile(
     workingDir: File? = null,
     previousCompilationResult: JvmCompilationResult? = null,
     moduleName: String? = null,
+    useKsp2: Boolean = true,
     exitCode: KotlinCompilation.ExitCode = KotlinCompilation.ExitCode.OK,
     block: JvmCompilationResult.() -> Unit = { },
 ): JvmCompilationResult {
@@ -164,7 +164,7 @@ fun compile(
                 addPreviousCompilationResult(previousCompilationResult)
             }
         }
-        .configureKotlinInjectAnvilProcessor()
+        .configureKotlinInjectAnvilProcessor(useKsp2 = useKsp2)
         .compile(*sources)
         .also {
             if (exitCode == KotlinCompilation.ExitCode.OK) {
