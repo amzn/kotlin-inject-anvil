@@ -36,4 +36,5 @@ dependencies {
 
     // Bump transitive dependency.
     testImplementation libs.ksp
+    testImplementation libs.ksp.embeddable
 }

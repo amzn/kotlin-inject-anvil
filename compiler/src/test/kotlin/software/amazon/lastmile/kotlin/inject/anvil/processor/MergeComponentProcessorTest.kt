@@ -59,7 +59,6 @@ class MergeComponentProcessorTest {
                 abstract val base: Base
             }
             """,
-            useKsp2 = false,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 
@@ -206,7 +205,6 @@ class MergeComponentProcessorTest {
             }
             """,
             previousCompilationResult = previousCompilation,
-            useKsp2 = false,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 
@@ -253,7 +251,6 @@ class MergeComponentProcessorTest {
                 abstract val base: Base
             }
             """,
-            useKsp2 = false,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 
@@ -300,7 +297,6 @@ class MergeComponentProcessorTest {
                 abstract val base: Base
             }
             """,
-            useKsp2 = false,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 
@@ -347,7 +343,6 @@ class MergeComponentProcessorTest {
                 abstract val base: Base
             }
             """,
-            useKsp2 = false,
         ) {
             assertThat(componentInterface.mergedComponent).isNotNull()
 

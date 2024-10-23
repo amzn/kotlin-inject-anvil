@@ -13,7 +13,7 @@ kotlin-hierarchy = "1.1"
 kotlin-inject = "0.7.2"
 kotlin-poet = "1.18.1"
 kotlinx-binaryCompatibilityValidator = "0.16.3"
-ksp = "2.0.21-1.0.25"
+ksp = "2.0.21-1.0.26"
 ktlint-binary = "1.2.1"
 ktlint-gradle = "12.1.1"
 maven-publish = "0.29.0"
@@ -43,6 +43,7 @@ kotlin-poet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotli
 ksp-gradle-plugin = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 ksp = { module = "com.google.devtools.ksp:symbol-processing", version.ref = "ksp" }
 ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+ksp-embeddable = { module = "com.google.devtools.ksp:symbol-processing-aa-embeddable", version.ref = "ksp" }
 ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
 maven-publish-gradle-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "maven-publish" }
 
