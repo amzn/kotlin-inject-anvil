@@ -60,7 +60,6 @@ class CustomSymbolProcessorTest {
             .configureKotlinInjectAnvilProcessor(
                 processorOptions = options,
                 symbolProcessorProviders = setOf(symbolProcessorProvider),
-                useKsp2 = false,
             )
             .compile(
                 """
@@ -129,7 +128,6 @@ class CustomSymbolProcessorTest {
             .configureKotlinInjectAnvilProcessor(
                 processorOptions = options,
                 symbolProcessorProviders = setOf(symbolProcessorProvider),
-                useKsp2 = false,
             )
             .addPreviousCompilationResult(previousCompilation)
             .compile(
@@ -172,7 +170,6 @@ class CustomSymbolProcessorTest {
         Compilation()
             .configureKotlinInjectAnvilProcessor(
                 symbolProcessorProviders = setOf(symbolProcessorProvider),
-                useKsp2 = false,
             )
             .compile(
                 """
