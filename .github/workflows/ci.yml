@@ -9,29 +9,7 @@ on:
   pull_request:
 
 jobs:
-  test-ubuntu:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
-
-      - name: Test on Ubuntu
-        run: ./gradlew assemble test --stacktrace --show-version --continue
-
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: ${{ failure() }}
-        with:
-          name: test-results
-          path: ./**/build/reports/tests/
-
-  test-mac:
+  test:
     runs-on: macos-latest
     timeout-minutes: 25
 
@@ -54,7 +32,7 @@ jobs:
           path: ./**/build/reports/tests/
 
   binary-compatibility-check:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 25
 
     steps:
@@ -69,7 +47,7 @@ jobs:
         run: ./gradlew apiCheck --stacktrace --show-version --continue
 
   ktlint:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 25
 
     steps:
@@ -121,7 +99,7 @@ jobs:
         run: ./gradlew detekt --stacktrace --show-version --continue
 
   publish-maven-local:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 25
 
     steps:
