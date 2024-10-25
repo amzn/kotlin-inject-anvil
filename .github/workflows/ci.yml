@@ -84,7 +84,7 @@ jobs:
           path: ./**/build/reports/lint-results.html
 
   detekt:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 25
 
     steps:
