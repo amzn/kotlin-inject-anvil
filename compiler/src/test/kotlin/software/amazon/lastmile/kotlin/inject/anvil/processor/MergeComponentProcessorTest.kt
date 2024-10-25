@@ -389,6 +389,31 @@ class MergeComponentProcessorTest {
     }
 
     @Test
+    fun `the super type must be declared`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Component
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+
+            @Component
+            @MergeComponent(AppScope::class)
+            abstract class ComponentInterface
+            """,
+            exitCode = COMPILATION_ERROR,
+        ) {
+            assertThat(messages).contains(
+                "ComponentInterface is annotated with @MergeComponent and " +
+                    "@Component. It's required to add ComponentInterfaceMerged as super " +
+                    "type to ComponentInterface. If you don't want to add the super manually, " +
+                    "then you must remove the @Component annotation.",
+            )
+        }
+    }
+
+    @Test
     fun `using a different kotlin-inject scope with marker scopes is allowed`() {
         compile(
             """

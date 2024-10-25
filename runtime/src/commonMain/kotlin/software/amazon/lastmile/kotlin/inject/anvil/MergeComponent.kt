@@ -4,9 +4,25 @@ import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.reflect.KClass
 
 /**
- * Will merge all contributed component interfaces in a single interface. The generated interface
- * needs to be manually added as super type to this component, e.g.
+ * Will merge all contributed component interfaces in a single interface. It's not required
+ * to add the original `@Component` annotation from kotlin-inject to your component. This
+ * annotation will generate the final kotlin-inject component under the hood:
+ * ```
+ * @MergeComponent(AppScope::class)
+ * @SingleIn(AppScope::class)
+ * abstract class AppComponent(
+ *     ...
+ * )
+ * ```
+ * Through an extension function on the class object the component can be instantiated:
+ * ```
+ * val component = AppComponent::class.create(...)
+ * ```
  *
+ * Note that in this example `AppComponent` will not implement all contributed interfaces directly.
+ * Instead, the final generated kotlin-inject component will contain all contributions. If this
+ * is important, e.g. for better IDE support, then you can the `@Component` annotation directly
+ * to the class with the super type:
  * ```
  * @Component
  * @MergeComponent(AppScope::class)
@@ -17,6 +33,8 @@ import kotlin.reflect.KClass
  * ```
  * The `@MergeComponent` annotation will generate the `AppComponentMerged` interface in the
  * same package as `AppComponent`.
+ *
+ * ## Exclusions
  *
  * It's possible to exclude any automatically added component interfaces with the [exclude]
  * parameter if needed.

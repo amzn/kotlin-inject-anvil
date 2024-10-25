@@ -4,6 +4,7 @@ package software.amazon.lastmile.kotlin.inject.anvil
 
 import com.tschuchort.compiletesting.JvmCompilationResult
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.descriptors.runtime.structure.primitiveByWrapper
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -26,11 +27,15 @@ internal val Class<*>.generatedComponent: Class<*>
 internal val JvmCompilationResult.contributesRenderer: Class<*>
     get() = classLoader.loadClass("software.amazon.test.ContributesRenderer")
 
-internal fun <T : Any> Class<*>.newComponent(): T {
+internal fun <T : Any> Class<*>.newComponent(vararg arguments: Any): T {
     @Suppress("UNCHECKED_CAST")
     return classLoader.loadClass("$packageName.Inject$simpleName")
-        .getDeclaredConstructor()
-        .newInstance() as T
+        .getDeclaredConstructor(
+            *arguments.map { arg ->
+                arg::class.java.primitiveByWrapper ?: arg::class.java
+            }.toTypedArray(),
+        )
+        .newInstance(*arguments) as T
 }
 
 internal val Class<*>.mergedComponent: Class<*>

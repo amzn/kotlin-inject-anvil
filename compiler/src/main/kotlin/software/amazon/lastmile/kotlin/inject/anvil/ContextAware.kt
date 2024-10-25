@@ -13,6 +13,7 @@ import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Visibility
 import me.tatarka.inject.annotations.Qualifier
 import me.tatarka.inject.annotations.Scope
@@ -191,6 +192,10 @@ internal interface ContextAware {
 
     fun KSDeclaration.requireQualifiedName(): String = requireQualifiedName(this@ContextAware)
 
+    fun KSValueParameter.requireName(): String = requireNotNull(name, this) {
+        "The name of the parameter $this was null."
+    }.asString()
+
     fun Resolver.getSymbolsWithAnnotation(annotation: KClass<*>): Sequence<KSAnnotated> =
         getSymbolsWithAnnotation(annotation.requireQualifiedName())
 
@@ -206,4 +211,6 @@ internal interface ContextAware {
         get() = requireQualifiedName()
             .split(".")
             .joinToString(separator = "") { it.capitalize() }
+
+    val KSClassDeclaration.mergedClassName get() = "${innerClassNames()}Merged"
 }
