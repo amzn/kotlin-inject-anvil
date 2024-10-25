@@ -4,6 +4,7 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
+import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
@@ -12,6 +13,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
@@ -121,8 +123,14 @@ internal class ContributesSubcomponentProcessor(
 
         val function = factoryInterface.factoryFunctions().single()
 
-        val parameters = function.parameters.map {
-            requireNotNull(it.name?.asString()) to it.type.toTypeName()
+        val parameters = function.parameters.map { valueParameter ->
+            FactoryParameter(
+                name = requireNotNull(valueParameter.name?.asString()),
+                typeName = valueParameter.type.toTypeName(),
+                qualifier = valueParameter.annotations
+                    .filter { it.isKotlinInjectQualifierAnnotation() }
+                    .singleOrNull(),
+            )
         }
 
         val finalComponentClassName = ClassName(
@@ -159,14 +167,27 @@ internal class ContributesSubcomponentProcessor(
                                     .build(),
                             )
                             .addParameters(
-                                parameters.map { (name, type) ->
+                                parameters.map { parameter ->
                                     ParameterSpec
-                                        .builder(name, type)
+                                        .builder(parameter.name, parameter.typeName)
                                         .addAnnotation(
                                             AnnotationSpec.builder(Provides::class)
                                                 .useSiteTarget(AnnotationSpec.UseSiteTarget.GET)
                                                 .build(),
                                         )
+                                        .apply {
+                                            if (parameter.qualifier != null) {
+                                                addAnnotation(
+                                                    parameter.qualifier
+                                                        .toAnnotationSpec()
+                                                        .toBuilder()
+                                                        .useSiteTarget(
+                                                            AnnotationSpec.UseSiteTarget.GET,
+                                                        )
+                                                        .build(),
+                                                )
+                                            }
+                                        }
                                         .build()
                                 },
                             )
@@ -178,9 +199,9 @@ internal class ContributesSubcomponentProcessor(
                             .build(),
                     )
                     .addProperties(
-                        parameters.map { (name, type) ->
-                            PropertySpec.builder(name, type)
-                                .initializer(name)
+                        parameters.map { parameter ->
+                            PropertySpec.builder(parameter.name, parameter.typeName)
+                                .initializer(parameter.name)
                                 .build()
                         },
                     )
@@ -198,9 +219,9 @@ internal class ContributesSubcomponentProcessor(
                                 FunSpec.builder(function.simpleName.asString())
                                     .addModifiers(KModifier.OVERRIDE)
                                     .addParameters(
-                                        parameters.map { (name, type) ->
+                                        parameters.map { parameter ->
                                             ParameterSpec
-                                                .builder(name, type)
+                                                .builder(parameter.name, parameter.typeName)
                                                 .build()
                                         },
                                     )
@@ -213,7 +234,7 @@ internal class ContributesSubcomponentProcessor(
                                                 separator = ", ",
                                                 prefix = ", ",
                                             ) {
-                                                it.first
+                                                it.name
                                             }
                                         }
 
@@ -244,4 +265,10 @@ internal class ContributesSubcomponentProcessor(
 
         return finalComponentClassName.nestedClass("Factory")
     }
+
+    private data class FactoryParameter(
+        val name: String,
+        val typeName: TypeName,
+        val qualifier: KSAnnotation?,
+    )
 }

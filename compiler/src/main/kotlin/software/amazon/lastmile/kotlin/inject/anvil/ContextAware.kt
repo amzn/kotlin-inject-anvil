@@ -14,6 +14,7 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Visibility
+import me.tatarka.inject.annotations.Qualifier
 import me.tatarka.inject.annotations.Scope
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import kotlin.reflect.KClass
@@ -23,6 +24,7 @@ internal interface ContextAware {
     val logger: KSPLogger
 
     private val scopeFqName get() = Scope::class.requireQualifiedName()
+    private val qualifierFqName get() = Qualifier::class.requireQualifiedName()
 
     fun <T : Any> requireNotNull(
         value: T?,
@@ -90,6 +92,16 @@ internal interface ContextAware {
     private fun KSType.isKotlinInjectScopeAnnotation(): Boolean {
         return declaration.annotations.any {
             it.annotationType.resolve().declaration.requireQualifiedName() == scopeFqName
+        }
+    }
+
+    fun KSAnnotation.isKotlinInjectQualifierAnnotation(): Boolean {
+        return annotationType.resolve().isKotlinInjectQualifierAnnotation()
+    }
+
+    private fun KSType.isKotlinInjectQualifierAnnotation(): Boolean {
+        return declaration.annotations.any {
+            it.annotationType.resolve().declaration.requireQualifiedName() == qualifierFqName
         }
     }
 

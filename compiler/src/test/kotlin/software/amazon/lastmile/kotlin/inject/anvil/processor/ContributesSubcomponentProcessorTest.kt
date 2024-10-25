@@ -388,6 +388,77 @@ class ContributesSubcomponentProcessorTest {
     }
 
     @Test
+    @Suppress("ForbiddenComment")
+    fun `the factory function accepts parameters with qualifier annotations and the parameters are bound in the component`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.ForScope
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Qualifier
+            import me.tatarka.inject.annotations.Provides
+
+            @Qualifier
+            annotation class QualifiedString
+
+            @Component
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            interface ComponentInterface : ComponentInterfaceMerged
+
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
+            interface OtherComponent {
+                @ContributesSubcomponent.Factory(AppScope::class)
+                interface Parent {
+                    fun otherComponent(
+                        @QualifiedString stringArg: String, 
+                        @ForScope(LoggedInScope::class) intArg: Int,
+                    ): OtherComponent 
+                }
+            }
+            
+            @ContributesTo(LoggedInScope::class)
+            interface ChildComponent {
+                @QualifiedString
+                val string: String
+                
+                @ForScope(LoggedInScope::class)
+                val int: Int
+            }
+            """,
+            scopesSource,
+            // TODO: Enable KSP2 once this bug is solved:
+            //  https://github.com/evant/kotlin-inject/issues/447
+            useKsp2 = false,
+        ) {
+            val component = componentInterface.newComponent<Any>()
+            val childComponent = component::class.java.methods
+                .single { it.name == "otherComponent" }
+                .invoke(component, "some string", 5)
+
+            assertThat(childComponent).isNotNull()
+
+            assertThat(
+                childComponent::class.java.methods
+                    .single { it.name == "getString" }
+                    .invoke(childComponent),
+            ).isEqualTo("some string")
+            assertThat(
+                childComponent::class.java.methods
+                    .single { it.name == "getInt" }
+                    .invoke(childComponent),
+            ).isEqualTo(5)
+        }
+    }
+
+    @Test
     fun `abstract classes are disallowed`() {
         compile(
             """
