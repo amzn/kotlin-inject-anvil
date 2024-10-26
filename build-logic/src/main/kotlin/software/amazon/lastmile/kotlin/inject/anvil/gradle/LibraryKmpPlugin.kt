@@ -4,10 +4,7 @@ import kotlinx.validation.ApiValidationExtension
 import kotlinx.validation.ExperimentalBCVApi
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompilerOptions
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.dsl.KotlinNativeCompilerOptions
 
 open class LibraryKmpPlugin : Plugin<Project> {
 
@@ -25,6 +22,7 @@ open class LibraryKmpPlugin : Plugin<Project> {
         target.configureExplicitApi()
         target.enableExpectActualClasses()
         target.configureKmp()
+        target.configureModuleName()
         target.addExtraSourceSets()
 
         target.plugins.apply(PublishingPlugin::class.java)
@@ -48,12 +46,6 @@ open class LibraryKmpPlugin : Plugin<Project> {
 
     @Suppress("OPT_IN_USAGE")
     private fun Project.configureKmp() {
-        // Note this doesn't work on JS/WASMJS yet due to
-        // https://youtrack.jetbrains.com/issue/KT-71362
-        val uniqueModuleName =
-            project.findProperty("POM_ARTIFACT_ID")?.toString()?.let { artifactId ->
-                "kotlin-inject-anvil-$artifactId"
-            }
         with(kotlin) {
             androidTarget()
 
@@ -62,7 +54,6 @@ open class LibraryKmpPlugin : Plugin<Project> {
             iosX64()
 
             js {
-                moduleName = uniqueModuleName
                 browser()
             }
 
@@ -79,7 +70,6 @@ open class LibraryKmpPlugin : Plugin<Project> {
             tvosX64()
 
             wasmJs {
-                moduleName = uniqueModuleName
                 browser()
             }
 
@@ -90,24 +80,23 @@ open class LibraryKmpPlugin : Plugin<Project> {
 
             applyDefaultHierarchyTemplate()
         }
+    }
 
-        // Ensure a unique module name for each published artifact
-        uniqueModuleName?.let { moduleName ->
-            kotlin.targets.configureEach { target ->
+    private fun Project.configureModuleName() {
+        // Don't use the `moduleName` APIs on the compilerOptions. They don't support
+        // commonMain source / compilations, which then still causes problem in other projects.
+        // Instead, set the module name directly as compiler argument.
+        kotlin.targets.configureEach { target ->
+            // Note this doesn't work on JS/WASMJS yet due to
+            // https://youtrack.jetbrains.com/issue/KT-71362
+            if (target.targetName != "js" && target.targetName != "wasmJs") {
                 target.compilations.configureEach { compilation ->
                     compilation.compileTaskProvider.configure {
-                        when (val compilerOptions = it.compilerOptions) {
-                            is KotlinNativeCompilerOptions -> {
-                                compilerOptions.moduleName.set(moduleName)
-                            }
+                        with(it.compilerOptions) {
+                            val projectPath = path.replace(':', '-').substring(1)
 
-                            is KotlinJvmCompilerOptions -> {
-                                compilerOptions.moduleName.set(moduleName)
-                            }
-
-                            is KotlinJsCompilerOptions -> {
-                                compilerOptions.moduleName.set(moduleName)
-                            }
+                            freeCompilerArgs.add("-module-name")
+                            freeCompilerArgs.add("$projectPath-${compilation.compilationName}")
                         }
                     }
                 }
