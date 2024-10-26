@@ -16,6 +16,6 @@ class IosAppComponentTest {
 
     private fun <T> component(): T {
         @Suppress("UNCHECKED_CAST")
-        return IosAppComponent::class.create(UIApplication.sharedApplication) as T
+        return IosAppComponent::class.createComponent(UIApplication.sharedApplication) as T
     }
 }

@@ -24,16 +24,16 @@ interface AppIdComponent {
 class RealAuthenticator : Authenticator
 
 // The final kotlin-inject component.
-//  see the section on "Usage > Merging" to understand
-//  how AppComponentMerged is generated and must be used.
-@Component
 @MergeComponent(AppScope::class)
 @SingleIn(AppScope::class)
-interface AppComponent : AppComponentMerged
+interface AppComponent
+
+// Instantiate the component at runtime.
+val component = AppComponent::class.create()
 ```
 From the above example code snippet:
 
-* `AppIdComponent` will be made a super type of `AppComponent` and the
+* `AppIdComponent` will be made a super type of the final component and the
 provider method is known to the object graph, so you can inject and use AppId anywhere.
 * A binding for `RealAuthenticator` will be generated and the type `Authenticator` can safely be injected anywhere.
 * Note that neither `AppIdComponent` nor `RealAuthenticator` need to be referenced anywhere else in your code.
@@ -129,7 +129,6 @@ add it to the final component.
 @ContributesBinding(AppScope::class, multibinding = true)
 class LoggingInterceptor : Interceptor
 
-@Component
 @MergeComponent(AppScope::class)
 @SingleIn(AppScope::class)
 abstract class AppComponent {
@@ -165,23 +164,69 @@ object graph at runtime:
 @SingleIn(AppScope::class)
 interface AppComponent
 ```
-In order to pick up all contributions, you must add the `@MergeComponent` annotation:
+In order to pick up all contributions, you must change the `@Component` annotation to
+`@MergeComponent`:
 ```kotlin
-@Component
 @MergeComponent(AppScope::class)
 @SingleIn(AppScope::class)
 interface AppComponent
 ```
-This will generate a new interface `AppComponentMerged` in the same package as `AppComponent`.
-This generated interface must be added as super type:
+This will generate a new component class with the original `@Component` annotation and merge all
+contributions to the scope `AppScope`.
+
+To instantiate the component at runtime, call the generated `create()` function:
 ```kotlin
-@Component
+val component = AppComponent::class.create()
+```
+
+#### Parameters
+
+Parameters are supported the same way as with `kotlin-inject`:
+```kotlin
 @MergeComponent(AppScope::class)
 @SingleIn(AppScope::class)
-interface AppComponent : AppComponentMerged
+abstract class AppComponent(
+    @get:Provides val userId: String,
+)
+
+val component = AppComponent::class.create("userId")
 ```
-With this setup any contribution is automatically merged. These steps have to be repeated for
-every component in your project.
+
+#### Kotlin Multiplatform
+
+With Kotlin Multiplatform there is a high chance that the generated code cannot be referenced
+from common Kotlin code or from common platform code like `iosMain`. This is due to how
+[common source folders are separated from platform source folders](https://kotlinlang.org/docs/whatsnew20.html#separation-of-common-and-platform-sources-during-compilation).
+For more details and recommendations setting up kotlin-inject in Kotlin Multiplatform projects
+see the [official guide](https://github.com/evant/kotlin-inject/blob/main/docs/multiplatform.md).
+
+To address this issue, you can define an `expect fun` in the common source code next to
+component class itself. The `actual fun` will be generated and create the component. The
+function must be annotated with `@MergeComponent.CreateComponent`. It's optional to have a
+receiver type of `KClass` with your component type as argument. The number of parameters
+must match the arguments of your component and the return type must be your component, e.g.
+your component in common code could be declared as:
+```kotlin
+@MergeComponent(AppScope::class)
+@SingleIn(AppScope::class)
+abstract class AppComponent(
+    @get:Provides userId: String,
+)
+
+// Create this function next to your component class. The actual function will be generated.
+@CreateComponent
+expect fun create(appId: String): AppComponent
+
+// Or with receiver type:
+@CreateComponent
+expect fun KClass<AppComponent>.create(appId: String): AppComponent
+```
+The generated `actual fun` will be generated and will look like this:
+```kotlin
+actual fun create(appId: String): AppComponent {
+    return KotlinInjectAppComponent::class.create(appId)
+}
+```
 
 ### Scopes
 
@@ -202,7 +247,6 @@ the `kotlin-inject` components or to make instances a singleton in a scope, e.g.
 @ContributesBinding(AppScope::class)
 class RealAuthenticator : Authenticator
 
-@Component
 @MergeComponent(AppScope::class)
 @SingleIn(AppScope::class) // scope for kotlin-inject
 interface AppComponent
@@ -238,6 +282,7 @@ and build logic on top of them.
 For example, assume this is your annotation:
 ```kotlin
 @Target(CLASS)
+@ContributingAnnotation // see below for details
 annotation class MyCustomAnnotation
 ```
 

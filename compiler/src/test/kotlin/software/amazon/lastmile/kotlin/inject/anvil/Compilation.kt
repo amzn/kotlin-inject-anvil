@@ -144,6 +144,7 @@ fun compile(
     previousCompilationResult: JvmCompilationResult? = null,
     moduleName: String? = null,
     useKsp2: Boolean = true,
+    multiplatform: Boolean = false,
     exitCode: KotlinCompilation.ExitCode = KotlinCompilation.ExitCode.OK,
     block: JvmCompilationResult.() -> Unit = { },
 ): JvmCompilationResult {
@@ -158,6 +159,7 @@ fun compile(
                 if (moduleName != null) {
                     this.moduleName = moduleName
                 }
+                this.multiplatform = multiplatform
             }
 
             if (previousCompilationResult != null) {
