@@ -10,10 +10,12 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
+import me.tatarka.inject.annotations.Provides
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
@@ -27,7 +29,8 @@ import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
  * In the lookup package [LOOKUP_PACKAGE] a new interface is generated extending the contributed
  * interface. To avoid name clashes the package name of the original interface is encoded in the
  * interface name. This is very similar to [ContributesTo] with the key differences that there
- * are more strict checks and that [Subcomponent] is added as marker.
+ * are more strict checks and that [Subcomponent] is added as marker. Further, an `@Provides`
+ * (binding) function is generated to be able to inject the factory type.
  * ```
  * package software.amazon.test
  *
@@ -46,7 +49,10 @@ import software.amazon.lastmile.kotlin.inject.anvil.internal.Subcomponent
  *
  * @Origin(Subcomponent.Factory::class)
  * @Subcomponent
- * interface SoftwareAmazonTestSubcomponentFactory : Subcomponent.Factory
+ * interface SoftwareAmazonTestSubcomponentFactory : Subcomponent.Factory {
+ *     @Provides
+ *     fun provideSubcomponentFactory(): Subcomponent.Factory = this
+ * }
  * ```
  */
 @OptIn(KspExperimental::class)
@@ -95,6 +101,13 @@ internal class ContributesSubcomponentFactoryProcessor(
                     .addOriginAnnotation(factory)
                     .addAnnotation(Subcomponent::class)
                     .addSuperinterface(factory.toClassName())
+                    .addFunction(
+                        FunSpec.builder("provide${factory.innerClassNames()}")
+                            .addAnnotation(Provides::class)
+                            .returns(factory.toClassName())
+                            .addStatement("return this")
+                            .build(),
+                    )
                     .build(),
             )
             .build()
