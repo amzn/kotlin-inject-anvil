@@ -6,17 +6,18 @@ plugins {
 kotlin {
     androidTarget()
     iosSimulatorArm64()
+    iosArm64()
 
     applyDefaultHierarchyTemplate()
 }
 
 dependencies {
-    kspCommonMainMetadata libs.kotlin.inject.ksp
     kspAndroid libs.kotlin.inject.ksp
+    kspIosArm64 libs.kotlin.inject.ksp
     kspIosSimulatorArm64 libs.kotlin.inject.ksp
 
-    kspCommonMainMetadata project(':compiler')
     kspAndroid project(':compiler')
+    kspIosArm64 project(':compiler')
     kspIosSimulatorArm64 project(':compiler')
 
     commonMainImplementation project(':runtime')

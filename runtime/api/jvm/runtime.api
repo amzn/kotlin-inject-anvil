@@ -25,6 +25,9 @@ public abstract interface annotation class software/amazon/lastmile/kotlin/injec
 	public abstract fun scope ()Ljava/lang/Class;
 }
 
+public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/MergeComponent$CreateComponent : java/lang/annotation/Annotation {
+}
+
 public abstract interface annotation class software/amazon/lastmile/kotlin/inject/anvil/extend/ContributingAnnotation : java/lang/annotation/Annotation {
 }
 

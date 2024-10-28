@@ -54,10 +54,10 @@ internal interface ContextAware {
     }
 
     fun checkIsPublic(
-        clazz: KSClassDeclaration,
+        declaration: KSDeclaration,
         lazyMessage: () -> String = { "Contributed component interfaces must be public." },
     ) {
-        check(clazz.getVisibility() == Visibility.PUBLIC, clazz, lazyMessage)
+        check(declaration.getVisibility() == Visibility.PUBLIC, declaration, lazyMessage)
     }
 
     fun checkIsInterface(

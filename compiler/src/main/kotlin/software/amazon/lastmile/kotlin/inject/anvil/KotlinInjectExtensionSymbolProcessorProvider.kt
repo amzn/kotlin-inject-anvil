@@ -8,6 +8,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesSubcomponentFactoryProcessor
 import software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesSubcomponentProcessor
 import software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesToProcessor
+import software.amazon.lastmile.kotlin.inject.anvil.processor.CreateComponentProcessor
 import software.amazon.lastmile.kotlin.inject.anvil.processor.GenerateKotlinInjectComponentProcessor
 import software.amazon.lastmile.kotlin.inject.anvil.processor.MergeComponentProcessor
 import software.amazon.lastmile.kotlin.inject.anvil.processor.extend.ContributingAnnotationProcessor
@@ -67,6 +68,12 @@ class KotlinInjectExtensionSymbolProcessorProvider : SymbolProcessorProvider {
             )
             addIfEnabled(
                 GenerateKotlinInjectComponentProcessor(
+                    codeGenerator = environment.codeGenerator,
+                    logger = environment.logger,
+                ),
+            )
+            addIfEnabled(
+                CreateComponentProcessor(
                     codeGenerator = environment.codeGenerator,
                     logger = environment.logger,
                 ),
