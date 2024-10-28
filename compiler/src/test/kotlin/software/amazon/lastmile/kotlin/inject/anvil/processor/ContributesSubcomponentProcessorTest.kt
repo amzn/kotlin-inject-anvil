@@ -490,6 +490,47 @@ class ContributesSubcomponentProcessorTest {
         }
     }
 
+    @Test
+    fun `the factory interface is provided and can be injected in the parent scope`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Provides
+
+            @MergeComponent(AppScope::class)
+            @Component
+            @SingleIn(AppScope::class)
+            interface ComponentInterface : ComponentInterfaceMerged {
+                val factory: LoggedInComponent.Factory
+            }
+
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
+            interface LoggedInComponent {
+                @ContributesSubcomponent.Factory(AppScope::class)
+                interface Factory {
+                    fun loggedInComponent(): LoggedInComponent 
+                }
+            }
+            """,
+            scopesSource,
+        ) {
+            val component = componentInterface.newComponent<Any>()
+            val loggedInComponent = component::class.java.methods
+                .single { it.name == "getFactory" }
+                .invoke(component)
+
+            assertThat(loggedInComponent).isNotNull()
+        }
+    }
+
     private val JvmCompilationResult.componentInterface2: Class<*>
         get() = classLoader.loadClass("software.amazon.test.ComponentInterface2")
 
