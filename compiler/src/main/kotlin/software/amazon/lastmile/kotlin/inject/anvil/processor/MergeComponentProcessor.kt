@@ -18,6 +18,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
+import me.tatarka.inject.annotations.Component
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
@@ -95,6 +96,10 @@ internal class MergeComponentProcessor(
             .filterIsInstance<KSClassDeclaration>()
             .distinctBy { it.requireQualifiedName() }
             .filter { it.requireQualifiedName() !in processedComponents }
+            .filter { it.isAnnotationPresent(Component::class) }
+            .onEach {
+                checkSuperTypeDeclared(it)
+            }
             .toList()
 
         // Nothing to do.
@@ -141,7 +146,7 @@ internal class MergeComponentProcessor(
     ) {
         val className = ClassName(
             packageName = clazz.packageName.asString(),
-            simpleNames = listOf("${clazz.innerClassNames()}Merged"),
+            simpleNames = listOf(clazz.mergedClassName),
         )
 
         val scope = clazz.scope()
@@ -232,6 +237,15 @@ internal class MergeComponentProcessor(
     private fun KSClassDeclaration.originChain(): Sequence<KSClassDeclaration> {
         return generateSequence(origin()) { clazz ->
             clazz.originOrNull()
+        }
+    }
+
+    private fun checkSuperTypeDeclared(clazz: KSClassDeclaration) {
+        check(clazz.superTypes.map { it.toString() }.any { it == clazz.mergedClassName }, clazz) {
+            "${clazz.simpleName.asString()} is annotated with @MergeComponent and @Component. " +
+                "It's required to add ${clazz.mergedClassName} as super type to " +
+                "${clazz.simpleName.asString()}. If you don't want to add the super manually, " +
+                "then you must remove the @Component annotation."
         }
     }
 }
