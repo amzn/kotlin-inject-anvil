@@ -23,6 +23,12 @@ internal const val LOOKUP_PACKAGE = "amazon.lastmile.inject"
  */
 internal const val OPTION_CONTRIBUTING_ANNOTATIONS = "kotlin-inject-anvil-contributing-annotations"
 
+/**
+ * If set to true, warnings about unsupported parameters on Anvil annotations will be ignored.
+ */
+internal const val OPTION_IGNORE_ANVIL_UNSUPPORTED_PARAM_WARNINGS =
+    "kotlin-inject-anvil-ignore-anvil-unsupported-param-warnings"
+
 internal fun String.decapitalize(): String = replaceFirstChar { it.lowercase(Locale.US) }
 internal fun String.capitalize(): String = replaceFirstChar {
     if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString()

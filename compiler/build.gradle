@@ -21,6 +21,7 @@ dependencies {
 
     // Gives us access to annotations.
     implementation libs.kotlin.inject.runtime
+    implementation "dev.zacsweers.anvil:annotations:1.0.0-SNAPSHOT"
 
     testImplementation project(':runtime-optional')
     testImplementation libs.assertk

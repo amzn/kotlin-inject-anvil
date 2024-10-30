@@ -164,6 +164,9 @@ internal interface ContextAware {
     fun KSClassDeclaration.findAnnotation(annotation: KClass<out Annotation>): KSAnnotation =
         findAnnotations(annotation).single()
 
+    fun KSClassDeclaration.findAnnotationOrNull(annotation: KClass<out Annotation>): KSAnnotation? =
+        findAnnotations(annotation).singleOrNull()
+
     fun KSClassDeclaration.findAnnotations(annotation: KClass<out Annotation>): List<KSAnnotation> {
         val fqName = annotation.requireQualifiedName()
         return annotations.filter { it.isAnnotation(fqName) }.toList()
@@ -198,6 +201,9 @@ internal interface ContextAware {
 
     fun Resolver.getSymbolsWithAnnotation(annotation: KClass<*>): Sequence<KSAnnotated> =
         getSymbolsWithAnnotation(annotation.requireQualifiedName())
+
+    fun Resolver.getSymbolsWithAnnotations(vararg annotations: KClass<*>): Sequence<KSAnnotated> =
+        sequenceOf(*annotations).flatMap { getSymbolsWithAnnotation(it) }.distinct()
 
     fun KSDeclaration.innerClassNames(separator: String = ""): String {
         val classNames = requireQualifiedName().substring(packageName.asString().length + 1)

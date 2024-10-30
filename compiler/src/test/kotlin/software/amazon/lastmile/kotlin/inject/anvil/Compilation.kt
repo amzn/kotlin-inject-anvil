@@ -145,6 +145,7 @@ fun compile(
     moduleName: String? = null,
     useKsp2: Boolean = true,
     multiplatform: Boolean = false,
+    options: Map<String, String> = emptyMap(),
     exitCode: KotlinCompilation.ExitCode = KotlinCompilation.ExitCode.OK,
     block: JvmCompilationResult.() -> Unit = { },
 ): JvmCompilationResult {
@@ -166,7 +167,7 @@ fun compile(
                 addPreviousCompilationResult(previousCompilationResult)
             }
         }
-        .configureKotlinInjectAnvilProcessor(useKsp2 = useKsp2)
+        .configureKotlinInjectAnvilProcessor(useKsp2 = useKsp2, processorOptions = options)
         .compile(*sources)
         .also {
             if (exitCode == KotlinCompilation.ExitCode.OK) {
