@@ -4,7 +4,10 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 
-internal class CompositeSymbolProcessor(
+/**
+ * A [SymbolProcessor] that delegates to a collection of [SymbolProcessor]s.
+ */
+class CompositeSymbolProcessor(
     symbolProcessors: Collection<SymbolProcessor>,
 ) : SymbolProcessor {
 

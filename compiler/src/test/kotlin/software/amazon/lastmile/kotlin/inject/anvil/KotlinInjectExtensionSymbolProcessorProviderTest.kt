@@ -9,6 +9,9 @@ import assertk.assertions.isInstanceOf
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
+import software.amazon.lastmile.kotlin.inject.anvil.test.Compilation
+import software.amazon.lastmile.kotlin.inject.anvil.test.componentInterface
+import software.amazon.lastmile.kotlin.inject.anvil.test.generatedComponent
 
 class KotlinInjectExtensionSymbolProcessorProviderTest {
 

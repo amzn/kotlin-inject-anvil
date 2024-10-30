@@ -20,8 +20,11 @@ import me.tatarka.inject.annotations.Scope
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import kotlin.reflect.KClass
 
-@Suppress("TooManyFunctions")
-internal interface ContextAware {
+@Suppress("TooManyFunctions", "UndocumentedPublicClass", "UndocumentedPublicFunction")
+interface ContextAware {
+    /**
+     * The KSP logger to use by the processor.
+     */
     val logger: KSPLogger
 
     private val scopeFqName get() = Scope::class.requireQualifiedName()
@@ -218,5 +221,8 @@ internal interface ContextAware {
             .split(".")
             .joinToString(separator = "") { it.capitalize() }
 
+    /**
+     * Returns the merged class name for the receiver [KSClassDeclaration].
+     */
     val KSClassDeclaration.mergedClassName get() = "${innerClassNames()}Merged"
 }

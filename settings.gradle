@@ -32,7 +32,10 @@ develocity {
 
 rootProject.name = 'kotlin-inject-anvil'
 
+include ':dagger-anvil-compat'
 include ':compiler'
+include ':compiler-test'
+include ':compiler-utils'
 include ':runtime'
 include ':runtime-optional'
 include ':sample:app'

@@ -8,11 +8,11 @@ import assertk.assertions.isEqualTo
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
-import software.amazon.lastmile.kotlin.inject.anvil.compile
-import software.amazon.lastmile.kotlin.inject.anvil.contributesRenderer
-import software.amazon.lastmile.kotlin.inject.anvil.generatedProperty
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
-import software.amazon.lastmile.kotlin.inject.anvil.propertyAnnotations
+import software.amazon.lastmile.kotlin.inject.anvil.test.compile
+import software.amazon.lastmile.kotlin.inject.anvil.test.contributesRenderer
+import software.amazon.lastmile.kotlin.inject.anvil.test.generatedProperty
+import software.amazon.lastmile.kotlin.inject.anvil.test.propertyAnnotations
 import kotlin.reflect.KClass
 
 class ContributingAnnotationProcessorTest {

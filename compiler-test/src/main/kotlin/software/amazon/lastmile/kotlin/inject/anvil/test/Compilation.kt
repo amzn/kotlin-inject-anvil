@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalCompilerApi::class)
 
-package software.amazon.lastmile.kotlin.inject.anvil
+package software.amazon.lastmile.kotlin.inject.anvil.test
 
 import assertk.assertThat
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
@@ -84,6 +84,9 @@ class Compilation internal constructor(
         }
     }
 
+    /**
+     * Adds the given [result] to the compilation classpath.
+     */
     fun addPreviousCompilationResult(result: JvmCompilationResult): Compilation = apply {
         checkNotCompiled()
         kotlinCompilation.addPreviousResultToClasspath(result)

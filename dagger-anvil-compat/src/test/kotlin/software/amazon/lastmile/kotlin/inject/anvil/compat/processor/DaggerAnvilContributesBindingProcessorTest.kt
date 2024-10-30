@@ -1,10 +1,11 @@
 @file:OptIn(ExperimentalCompilerApi::class)
 
-package software.amazon.lastmile.kotlin.inject.anvil.processor
+package software.amazon.lastmile.kotlin.inject.anvil.compat.processor
 
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.hasSize
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
@@ -12,7 +13,11 @@ import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
+import software.amazon.lastmile.kotlin.inject.anvil.compat.OPTION_IGNORE_DAGGER_ANVIL_UNSUPPORTED_PARAM_WARNINGS
+import software.amazon.lastmile.kotlin.inject.anvil.compat.createUnsupportedParamMessage
 import software.amazon.lastmile.kotlin.inject.anvil.test.compile
 import software.amazon.lastmile.kotlin.inject.anvil.test.generatedComponent
 import software.amazon.lastmile.kotlin.inject.anvil.test.inner
@@ -20,7 +25,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.test.isAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.test.isNotAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.test.origin
 
-class ContributesBindingProcessorTest {
+class DaggerAnvilContributesBindingProcessorTest {
 
     @Test
     fun `a component interface is generated in the lookup package for a contributed binding`() {
@@ -28,7 +33,7 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
@@ -57,7 +62,7 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
@@ -88,7 +93,7 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
@@ -116,7 +121,7 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
             import me.tatarka.inject.annotations.Inject
 
             @Inject
@@ -137,7 +142,7 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
@@ -162,7 +167,7 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
@@ -199,7 +204,7 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
@@ -224,7 +229,7 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
@@ -248,13 +253,13 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesMultibinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
 
             @Inject
-            @ContributesBinding(Unit::class, multibinding = true)
+            @ContributesMultibinding(Unit::class)
             class Impl : Base 
             """,
         ) {
@@ -278,24 +283,22 @@ class ContributesBindingProcessorTest {
             """
             package software.amazon.test
     
-            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesBinding
+            import com.squareup.anvil.annotations.ContributesMultibinding
             import me.tatarka.inject.annotations.Inject
 
             interface Base
 
             @Inject
-            @ContributesBinding(Unit::class, multibinding = false)
-            @ContributesBinding(Unit::class, multibinding = true)
+            @ContributesBinding(Unit::class)
+            @ContributesMultibinding(Unit::class)
             class Impl : Base 
             """,
         ) {
             val generatedComponent = impl.generatedComponent
-
             assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
             assertThat(generatedComponent.origin).isEqualTo(impl)
-
             assertThat(generatedComponent.declaredMethods).hasSize(2)
-
             val bindingMethod = generatedComponent.declaredMethods.first {
                 it.name == "provideImplBase"
             }
@@ -303,7 +306,6 @@ class ContributesBindingProcessorTest {
             assertThat(bindingMethod.returnType).isEqualTo(base)
             assertThat(bindingMethod).isAnnotatedWith(Provides::class)
             assertThat(bindingMethod).isNotAnnotatedWith(IntoSet::class)
-
             val multibindingBindingMethod = generatedComponent.declaredMethods.first {
                 it.name == "provideImplBaseMultibinding"
             }
@@ -311,6 +313,60 @@ class ContributesBindingProcessorTest {
             assertThat(multibindingBindingMethod.returnType).isEqualTo(base)
             assertThat(multibindingBindingMethod).isAnnotatedWith(Provides::class)
             assertThat(multibindingBindingMethod).isAnnotatedWith(IntoSet::class)
+        }
+    }
+
+    @ParameterizedTest(name = "annotation: {0}")
+    @ValueSource(
+        strings = [
+            "ContributesBinding",
+            "ContributesMultibinding",
+        ],
+    )
+    fun `warn when using unsupported parameters on anvil annotation`(annotation: String) {
+        compile(
+            """
+            package software.amazon.test
+    
+            import com.squareup.anvil.annotations.$annotation
+            import javax.inject.Inject
+
+            interface Base
+
+            @$annotation(Unit::class, replaces = [String::class]) 
+            class Impl @Inject constructor() : Base
+            """,
+        ) {
+            val expectedMessage = createUnsupportedParamMessage(annotation, "replaces")
+            assertThat(messages).contains(expectedMessage)
+        }
+    }
+
+    @ParameterizedTest(name = "annotation: {0}")
+    @ValueSource(
+        strings = [
+            "ContributesBinding",
+            "ContributesMultibinding",
+        ],
+    )
+    fun `ignore warning when using unsupported parameters on anvil annotations`(
+        annotation: String,
+    ) {
+        compile(
+            """
+            package software.amazon.test
+    
+            import com.squareup.anvil.annotations.$annotation
+            import javax.inject.Inject
+
+            interface Base
+
+            @$annotation(Unit::class, replaces = [String::class]) 
+            class Impl @Inject constructor() : Base
+            """,
+            options = mapOf(OPTION_IGNORE_DAGGER_ANVIL_UNSUPPORTED_PARAM_WARNINGS to "true"),
+        ) {
+            assertThat(messages).isEmpty()
         }
     }
 

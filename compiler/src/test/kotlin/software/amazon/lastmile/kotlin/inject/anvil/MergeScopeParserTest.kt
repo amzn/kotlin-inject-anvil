@@ -20,6 +20,9 @@ import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
+import software.amazon.lastmile.kotlin.inject.anvil.test.Compilation
+import software.amazon.lastmile.kotlin.inject.anvil.test.isError
+import software.amazon.lastmile.kotlin.inject.anvil.test.isOk
 
 class MergeScopeParserTest {
 

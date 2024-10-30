@@ -7,7 +7,7 @@ import assertk.assertions.contains
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
-import software.amazon.lastmile.kotlin.inject.anvil.compile
+import software.amazon.lastmile.kotlin.inject.anvil.test.compile
 
 // Note that there's no unit test verifying the correctly generated code. We're blocked on testing
 // expect-actual multiplatform code in unit tests.

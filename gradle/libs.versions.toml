@@ -2,6 +2,7 @@
 agp = "8.5.2"
 android-compileSdk = "34"
 android-minSdk = "21"
+anvil-ksp = "0.4.0"
 assertk = "0.28.1"
 auto-service = "1.1.1"
 auto-service-ksp = "1.2.0"
@@ -20,6 +21,7 @@ maven-publish = "0.29.0"
 
 [libraries]
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+anvil-ksp-annotations = { module = "dev.zacsweers.anvil:annotations", version.ref = "anvil-ksp" }
 assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
 auto-service-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "auto-service" }
 auto-service-ksp = { module = "dev.zacsweers.autoservice:auto-service-ksp", version.ref = "auto-service-ksp" }

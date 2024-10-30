@@ -12,9 +12,9 @@ import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERRO
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
-import software.amazon.lastmile.kotlin.inject.anvil.compile
-import software.amazon.lastmile.kotlin.inject.anvil.generatedComponent
-import software.amazon.lastmile.kotlin.inject.anvil.origin
+import software.amazon.lastmile.kotlin.inject.anvil.test.compile
+import software.amazon.lastmile.kotlin.inject.anvil.test.generatedComponent
+import software.amazon.lastmile.kotlin.inject.anvil.test.origin
 
 class ContributesSubcomponentFactoryProcessorTest {
 

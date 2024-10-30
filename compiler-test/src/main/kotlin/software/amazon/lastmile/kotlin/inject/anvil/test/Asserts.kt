@@ -1,7 +1,7 @@
 @file:JvmName("UtilUnitTest")
 @file:OptIn(ExperimentalCompilerApi::class)
 
-package software.amazon.lastmile.kotlin.inject.anvil
+package software.amazon.lastmile.kotlin.inject.anvil.test
 
 import assertk.Assert
 import assertk.assertions.contains

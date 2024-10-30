@@ -63,7 +63,6 @@ internal class MergeComponentProcessor(
         addAll(
             sequenceOf(
                 ContributesTo::class,
-                com.squareup.anvil.annotations.ContributesTo::class,
                 ContributesBinding::class,
                 ContributesSubcomponent::class,
                 ContributesSubcomponent.Factory::class,

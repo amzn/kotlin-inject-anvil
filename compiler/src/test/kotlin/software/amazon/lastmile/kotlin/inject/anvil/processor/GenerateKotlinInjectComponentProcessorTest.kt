@@ -9,10 +9,10 @@ import assertk.assertions.isTrue
 import com.tschuchort.compiletesting.JvmCompilationResult
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
-import software.amazon.lastmile.kotlin.inject.anvil.compile
-import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
-import software.amazon.lastmile.kotlin.inject.anvil.inner
-import software.amazon.lastmile.kotlin.inject.anvil.newComponent
+import software.amazon.lastmile.kotlin.inject.anvil.test.compile
+import software.amazon.lastmile.kotlin.inject.anvil.test.componentInterface
+import software.amazon.lastmile.kotlin.inject.anvil.test.inner
+import software.amazon.lastmile.kotlin.inject.anvil.test.newComponent
 import java.lang.reflect.Method
 
 class GenerateKotlinInjectComponentProcessorTest {

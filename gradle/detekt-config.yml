@@ -14,7 +14,7 @@ style:
     ignoreCompanionObjectPropertyDeclaration: true
   UnusedPrivateMember:
     # Recommended for Compose: https://detekt.dev/docs/introduction/compose/
-    ignoreAnnotated: ['Preview']
+    ignoreAnnotated: [ 'Preview' ]
   MaxLineLength:
     active: false
 comments:
@@ -27,18 +27,21 @@ comments:
     excludes: [
       '**/src/*Test/**/*.kt',
       '**/src/test/**/*.kt',
+      '**/src/main/**/test/*.kt',
     ]
   UndocumentedPublicFunction:
     active: true
     excludes: [
       '**/src/*Test/**/*.kt',
       '**/src/test/**/*.kt',
+      '**/src/main/**/test/*.kt',
     ]
   UndocumentedPublicProperty:
     active: true
     excludes: [
       '**/src/*Test/**/*.kt',
       '**/src/test/**/*.kt',
+      '**/src/main/**/test/*.kt',
     ]
 complexity:
   LongParameterList:
@@ -73,4 +76,4 @@ naming:
   FunctionNaming:
     # The next two parameters are recommended for Compose: https://detekt.dev/docs/introduction/compose/
     functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ignoreAnnotated: ['Composable']
+    ignoreAnnotated: [ 'Composable' ]

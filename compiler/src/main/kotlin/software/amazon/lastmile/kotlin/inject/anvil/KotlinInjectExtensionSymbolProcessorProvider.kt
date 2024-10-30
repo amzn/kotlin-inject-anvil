@@ -35,7 +35,6 @@ class KotlinInjectExtensionSymbolProcessorProvider : SymbolProcessorProvider {
                 ContributesToProcessor(
                     codeGenerator = environment.codeGenerator,
                     logger = environment.logger,
-                    options = environment.options,
                 ),
             )
             addIfEnabled(
