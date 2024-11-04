@@ -17,6 +17,24 @@
 ### Other Notes & Contributions
 
 
+## [0.1.0] - 2024-11-04
+
+### Added
+
+* Provide option to hide the merged interface and make it no longer required to add the super type, see #8.
+* Support `expect / actual` for generated factory functions using `@CreateComponent`, see #20.
+
+### Changed
+
+* Upgraded the project to Kotlin `2.0.21`.
+
+### Fixed
+
+* Support qualifiers on the factory functions when contributing subcomponents and don't silently drop them, see #58.
+* Generate binding method for subcomponent factory, see #49.
+* Update module name for KLib for common sources, see #63.
+
+
 ## [0.0.5] - 2024-10-07
 
 ### Changed
