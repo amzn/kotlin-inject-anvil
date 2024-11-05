@@ -31,6 +31,36 @@ import software.amazon.lastmile.kotlin.inject.anvil.decapitalize
 import software.amazon.lastmile.kotlin.inject.anvil.requireQualifiedName
 import kotlin.reflect.KClass
 
+/**
+ * Generates the code for [com.squareup.anvil.annotations.ContributesBinding] and
+ * [com.squareup.anvil.annotations.ContributesMultibinding].
+ *
+ * In the lookup package [LOOKUP_PACKAGE] a new interface is generated with a provider method for
+ * the annotated type. To avoid name clashes the package name of the original interface is encoded
+ * in the interface name. E.g.
+ * ```
+ * package software.amazon.test
+ *
+ * @Inject
+ * @SingleIn(AppScope::class)
+ * @ContributesBinding(AppScope::class)
+ * class RealAuthenticator : Authenticator
+ * ```
+ * Will generate:
+ * ```
+ * package $LOOKUP_PACKAGE
+ *
+ * @Origin(RealAuthenticator::class)
+ * interface SoftwareAmazonTestRealAuthenticator {
+ *     @Provides fun provideRealAuthenticatorAuthenticator(
+ *         realAuthenticator: RealAuthenticator
+ *     ): Authenticator = realAuthenticator
+ * }
+ * ```
+ *
+ * When using [com.squareup.anvil.annotations.ContributesMultibinding], the generated provider will
+ * be annotated with `@IntoSet`.
+ */
 internal class DaggerAnvilContributesBindingProcessor(
     private val codeGenerator: CodeGenerator,
     override val logger: KSPLogger,

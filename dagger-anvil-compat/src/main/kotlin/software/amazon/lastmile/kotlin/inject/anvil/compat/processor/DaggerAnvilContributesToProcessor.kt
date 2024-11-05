@@ -20,6 +20,27 @@ import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.compat.OPTION_IGNORE_DAGGER_ANVIL_UNSUPPORTED_PARAM_WARNINGS
 import software.amazon.lastmile.kotlin.inject.anvil.compat.createUnsupportedParamMessage
 
+/**
+ * Generates the code for [com.squareup.anvil.annotations.ContributesTo].
+ *
+ * In the lookup package [LOOKUP_PACKAGE] a new interface is generated extending the contributed
+ * interface. To avoid name clashes the package name of the original interface is encoded in the
+ * interface name. E.g.
+ * ```
+ * package software.amazon.test
+ *
+ * @ContributesTo(AppScope::class)
+ * @SingleIn(AppScope::class)
+ * interface ComponentInterface
+ * ```
+ * Will generate:
+ * ```
+ * package $LOOKUP_PACKAGE
+ *
+ * @Origin(ComponentInterface::class)
+ * interface SoftwareAmazonTestComponentInterface : ComponentInterface
+ * ```
+ */
 internal class DaggerAnvilContributesToProcessor(
     private val codeGenerator: CodeGenerator,
     override val logger: KSPLogger,
