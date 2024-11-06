@@ -14,6 +14,12 @@ class IosAppComponentTest {
         assertThat(component.applicationIdProvider.appId).isEqualTo("UIApplicationStateActive")
     }
 
+    @Test
+    fun `the Greeter is provided by the app component`() {
+        val component = component<GreeterComponent>()
+        assertThat(component.greeter.greet()).isEqualTo("Hello from iOS")
+    }
+
     private fun <T> component(): T {
         @Suppress("UNCHECKED_CAST")
         return IosAppComponent::class.createComponent(UIApplication.sharedApplication) as T

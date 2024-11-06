@@ -1,5 +1,6 @@
 package software.amazon.lastmile.kotlin.inject.anvil.compat.processor
 
+import com.google.devtools.ksp.isDefault
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -182,6 +183,7 @@ internal class DaggerAnvilContributesBindingProcessor(
                 annotation
                     .arguments
                     .filter { it.name?.asString() in contributesBindingUnsupportedParameters }
+                    .filterNot { it.isDefault() }
                     .forEach { argument ->
                         val argumentName = requireNotNull(argument.name).asString()
                         logger.warn(
@@ -196,6 +198,7 @@ internal class DaggerAnvilContributesBindingProcessor(
                 annotation
                     .arguments
                     .filter { it.name?.asString() in contributesMultibindingUnsupportedParameters }
+                    .filterNot { it.isDefault() }
                     .forEach { argument ->
                         val argumentName = requireNotNull(argument.name).asString()
                         logger.warn(

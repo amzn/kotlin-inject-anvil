@@ -1,5 +1,6 @@
 package software.amazon.lastmile.kotlin.inject.anvil.compat.processor
 
+import com.google.devtools.ksp.isDefault
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -7,13 +8,13 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.squareup.anvil.annotations.ContributesTo
+import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
-import me.tatarka.inject.annotations.Component
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
@@ -29,7 +30,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.compat.createUnsupportedPara
  * ```
  * package software.amazon.test
  *
- * @ContributesTo(AppScope::class)
+ * @com.squareup.anvil.annotations.ContributesTo(AppScope::class)
  * @SingleIn(AppScope::class)
  * interface ComponentInterface
  * ```
@@ -38,6 +39,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.compat.createUnsupportedPara
  * package $LOOKUP_PACKAGE
  *
  * @Origin(ComponentInterface::class)
+ * @software.amazon.lastmile.kotlin.inject.anvil.ContributesTo(AppScope::class)
  * interface SoftwareAmazonTestComponentInterface : ComponentInterface
  * ```
  */
@@ -63,12 +65,12 @@ internal class DaggerAnvilContributesToProcessor(
                 }
             }
             .forEach {
-                generateComponentInterface(it)
+                generateContributesToInterface(it)
             }
         return emptyList()
     }
 
-    private fun generateComponentInterface(clazz: KSClassDeclaration) {
+    private fun generateContributesToInterface(clazz: KSClassDeclaration) {
         val componentClassName = ClassName(LOOKUP_PACKAGE, clazz.safeClassName)
 
         val fileSpec = FileSpec.builder(componentClassName)
@@ -77,7 +79,13 @@ internal class DaggerAnvilContributesToProcessor(
                     .interfaceBuilder(componentClassName)
                     .addOriginatingKSFile(clazz.requireContainingFile())
                     .addOriginAnnotation(clazz)
-                    .addAnnotation(Component::class)
+                    .addAnnotation(
+                        AnnotationSpec.builder(
+                            software.amazon.lastmile.kotlin.inject.anvil.ContributesTo::class,
+                        )
+                            .addMember("scope = %T::class", clazz.scope().type.toClassName())
+                            .build(),
+                    )
                     .addSuperinterface(clazz.toClassName())
                     .build(),
             )
@@ -89,7 +97,9 @@ internal class DaggerAnvilContributesToProcessor(
     private fun warnIfUnsupportedParameters(clazz: KSClassDeclaration) {
         val annotation = clazz.findAnnotationOrNull(ContributesTo::class) ?: return
 
-        val argument = annotation.arguments.firstOrNull { it.name?.asString() == "replaces" }
+        val argument = annotation.arguments
+            .firstOrNull { it.name?.asString() == "replaces" }
+            ?.takeIf { !it.isDefault() }
 
         if (argument != null) {
             logger.warn(
