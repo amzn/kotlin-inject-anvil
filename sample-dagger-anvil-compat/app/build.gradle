@@ -24,7 +24,12 @@ dependencies {
     commonMainImplementation project(':runtime-optional')
     commonMainImplementation libs.kotlin.inject.runtime
 
-    commonMainImplementation project(':sample:lib')
+    commonMainImplementation project(':sample-dagger-anvil-compat:lib')
+
+    kspAndroid project(':dagger-anvil-compat')
+    kspIosArm64 project(':dagger-anvil-compat')
+    kspIosSimulatorArm64 project(':dagger-anvil-compat')
+    commonMainImplementation libs.anvil.ksp.annotations
 
     commonTestImplementation libs.assertk
     commonTestImplementation libs.kotlin.test

@@ -8,10 +8,9 @@ import kotlin.test.Test
 class IosAppComponentTest {
 
     @Test
-    @Suppress("FunctionNaming")
-    fun `the ApplicationIdProvider is provided by the app component`() {
-        val component = component<ApplicationIdProviderComponent>()
-        assertThat(component.applicationIdProvider.appId).isEqualTo("UIApplicationStateActive")
+    fun `the Greeter is provided by the app component`() {
+        val component = component<GreeterComponent>()
+        assertThat(component.greeter.greet()).isEqualTo("Hello from iOS")
     }
 
     private fun <T> component(): T {

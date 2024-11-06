@@ -8,9 +8,9 @@ import kotlin.test.Test
 class AndroidAppComponentTest {
 
     @Test
-    fun `the ApplicationIdProvider is provided by the app component`() {
-        val component = component<ApplicationIdProviderComponent>()
-        assertThat(component.applicationIdProvider.appId).isEqualTo("software.amazon.test")
+    fun `the Greeter is provided by the app component`() {
+        val component = component<GreeterComponent>()
+        assertThat(component.greeter.greet()).isEqualTo("Hello from Android")
     }
 
     private fun <T> component(): T {
