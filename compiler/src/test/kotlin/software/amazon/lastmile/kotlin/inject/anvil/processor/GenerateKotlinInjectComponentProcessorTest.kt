@@ -180,7 +180,6 @@ class GenerateKotlinInjectComponentProcessorTest {
                 abstract val base: Base
             }
             """,
-            useKsp2 = false,
         ) {
             val component = componentInterface.kotlinInjectComponent.newComponent<Any>("", 5)
 
@@ -347,7 +346,6 @@ class GenerateKotlinInjectComponentProcessorTest {
                 abstract val base: Base
             }
             """,
-            useKsp2 = false,
         ) {
             // Note that this invokes the generated function and verifies that
             // KClass<ComponentInterface> is the receiver type.
