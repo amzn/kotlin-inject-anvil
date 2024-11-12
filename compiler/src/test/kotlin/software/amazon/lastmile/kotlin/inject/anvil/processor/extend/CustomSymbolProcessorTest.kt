@@ -24,14 +24,14 @@ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import software.amazon.lastmile.kotlin.inject.anvil.Compilation
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import software.amazon.lastmile.kotlin.inject.anvil.OPTION_CONTRIBUTING_ANNOTATIONS
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
-import software.amazon.lastmile.kotlin.inject.anvil.compile
-import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
-import software.amazon.lastmile.kotlin.inject.anvil.mergedComponent
+import software.amazon.lastmile.kotlin.inject.anvil.test.Compilation
+import software.amazon.lastmile.kotlin.inject.anvil.test.compile
+import software.amazon.lastmile.kotlin.inject.anvil.test.componentInterface
+import software.amazon.lastmile.kotlin.inject.anvil.test.mergedComponent
 
 private const val CONTRIBUTING_ANNOTATION =
     "software.amazon.lastmile.kotlin.inject.anvil.extend.ContributingAnnotation"

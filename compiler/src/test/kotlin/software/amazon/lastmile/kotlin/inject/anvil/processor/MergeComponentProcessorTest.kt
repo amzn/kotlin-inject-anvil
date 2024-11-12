@@ -12,10 +12,10 @@ import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERRO
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
-import software.amazon.lastmile.kotlin.inject.anvil.compile
-import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
-import software.amazon.lastmile.kotlin.inject.anvil.inner
-import software.amazon.lastmile.kotlin.inject.anvil.mergedComponent
+import software.amazon.lastmile.kotlin.inject.anvil.test.compile
+import software.amazon.lastmile.kotlin.inject.anvil.test.componentInterface
+import software.amazon.lastmile.kotlin.inject.anvil.test.inner
+import software.amazon.lastmile.kotlin.inject.anvil.test.mergedComponent
 
 class MergeComponentProcessorTest {
 

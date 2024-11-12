@@ -14,13 +14,13 @@ import me.tatarka.inject.annotations.Component
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
-import software.amazon.lastmile.kotlin.inject.anvil.Compilation
 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
-import software.amazon.lastmile.kotlin.inject.anvil.compile
-import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
-import software.amazon.lastmile.kotlin.inject.anvil.newComponent
-import software.amazon.lastmile.kotlin.inject.anvil.origin
+import software.amazon.lastmile.kotlin.inject.anvil.test.Compilation
+import software.amazon.lastmile.kotlin.inject.anvil.test.compile
+import software.amazon.lastmile.kotlin.inject.anvil.test.componentInterface
+import software.amazon.lastmile.kotlin.inject.anvil.test.newComponent
+import software.amazon.lastmile.kotlin.inject.anvil.test.origin
 import kotlin.reflect.KClass
 
 class ContributesSubcomponentProcessorTest {

@@ -1,0 +1,24 @@
+plugins {
+    id 'software.amazon.lib.jvm'
+    alias(libs.plugins.ksp)
+}
+
+test {
+    useJUnitPlatform()
+
+    maxHeapSize = "2g"
+}
+
+dependencies {
+    implementation project(':runtime')
+    implementation libs.ksp.api
+
+    implementation libs.kotlin.poet
+    implementation libs.kotlin.poet.ksp
+
+    implementation libs.auto.service.annotations
+    ksp libs.auto.service.ksp
+
+    // Gives us access to annotations.
+    implementation libs.kotlin.inject.runtime
+}

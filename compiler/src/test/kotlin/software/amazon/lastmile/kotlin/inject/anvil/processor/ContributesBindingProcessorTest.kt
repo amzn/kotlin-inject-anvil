@@ -13,12 +13,12 @@ import me.tatarka.inject.annotations.Provides
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
-import software.amazon.lastmile.kotlin.inject.anvil.compile
-import software.amazon.lastmile.kotlin.inject.anvil.generatedComponent
-import software.amazon.lastmile.kotlin.inject.anvil.inner
-import software.amazon.lastmile.kotlin.inject.anvil.isAnnotatedWith
-import software.amazon.lastmile.kotlin.inject.anvil.isNotAnnotatedWith
-import software.amazon.lastmile.kotlin.inject.anvil.origin
+import software.amazon.lastmile.kotlin.inject.anvil.test.compile
+import software.amazon.lastmile.kotlin.inject.anvil.test.generatedComponent
+import software.amazon.lastmile.kotlin.inject.anvil.test.inner
+import software.amazon.lastmile.kotlin.inject.anvil.test.isAnnotatedWith
+import software.amazon.lastmile.kotlin.inject.anvil.test.isNotAnnotatedWith
+import software.amazon.lastmile.kotlin.inject.anvil.test.origin
 
 class ContributesBindingProcessorTest {
 

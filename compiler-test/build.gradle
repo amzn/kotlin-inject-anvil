@@ -1,0 +1,20 @@
+plugins {
+    id 'software.amazon.lib.jvm'
+}
+
+dependencies {
+    implementation project(':compiler-utils')
+    implementation project(':runtime')
+    implementation libs.ksp.api
+
+    // Gives us access to annotations.
+    implementation libs.kotlin.inject.runtime
+
+    implementation libs.assertk
+    implementation libs.kotlin.compile.testing.core
+    implementation libs.kotlin.compile.testing.ksp
+
+    implementation platform(libs.junit.jupiter.bom)
+    implementation libs.junit.jupiter.core
+    testRuntimeOnly libs.junit.jupiter.launcher
+}
