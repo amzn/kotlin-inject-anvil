@@ -20,11 +20,15 @@ plugins {
 
 develocity {
     buildScan {
-        publishing.onlyIf {
-            providers.environmentVariable("CI").isPresent() ||
-                    providers.systemProperty("CI").isPresent() ||
-                    providers.gradleProperty("CI").isPresent()
+        def isCi = providers.environmentVariable("CI").isPresent() ||
+                providers.systemProperty("CI").isPresent() ||
+                providers.gradleProperty("CI").isPresent()
+
+        if (isCi) {
+            publishing.onlyIf { true }
+            uploadInBackground = false
         }
+
         termsOfUseUrl = "https://gradle.com/terms-of-service"
         termsOfUseAgree = "yes"
     }
