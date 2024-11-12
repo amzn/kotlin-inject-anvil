@@ -459,6 +459,61 @@ class ContributesSubcomponentProcessorTest {
     }
 
     @Test
+    fun `the factory function accepts parameters that will override a property in the component and the parameters are bound in the component`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesSubcomponent
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Provides
+
+            @Component
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            interface ComponentInterface : ComponentInterfaceMerged
+
+            interface StringProvider {
+                val stringArg: String
+            }
+
+            @ContributesSubcomponent(LoggedInScope::class)
+            @SingleIn(LoggedInScope::class)
+            interface OtherComponent : StringProvider {
+                @ContributesSubcomponent.Factory(AppScope::class)
+                interface Parent {
+                    fun otherComponent(stringArg: String, intArg: Int): OtherComponent 
+                }
+            }
+            
+            @ContributesTo(LoggedInScope::class)
+            interface ChildComponent {
+                val string: String
+                val int: Int
+            }
+            """,
+            scopesSource,
+        ) {
+            val component = componentInterface.newComponent<Any>()
+            val childComponent = component::class.java.methods
+                .single { it.name == "otherComponent" }
+                .invoke(component, "some string", 5)
+
+            assertThat(childComponent).isNotNull()
+
+            // sanity check; the fact that compilation succeeded means the test passes
+            assertThat(
+                childComponent::class.java.methods
+                    .find { it.name == "getStringArg" },
+            ).isNotNull()
+        }
+    }
+
+    @Test
     fun `abstract classes are disallowed`() {
         compile(
             """

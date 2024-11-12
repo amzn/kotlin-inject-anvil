@@ -6,6 +6,7 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -130,6 +131,7 @@ internal class ContributesSubcomponentProcessor(
                 qualifier = valueParameter.annotations
                     .filter { it.isKotlinInjectQualifierAnnotation() }
                     .singleOrNull(),
+                isOverride = hasMatchingProperty(valueParameter, subcomponent),
             )
         }
 
@@ -202,6 +204,11 @@ internal class ContributesSubcomponentProcessor(
                         parameters.map { parameter ->
                             PropertySpec.builder(parameter.name, parameter.typeName)
                                 .initializer(parameter.name)
+                                .apply {
+                                    if (parameter.isOverride) {
+                                        addModifiers(KModifier.OVERRIDE)
+                                    }
+                                }
                                 .build()
                         },
                     )
@@ -270,5 +277,35 @@ internal class ContributesSubcomponentProcessor(
         val name: String,
         val typeName: TypeName,
         val qualifier: KSAnnotation?,
+        val isOverride: Boolean,
     )
+}
+
+private fun hasMatchingProperty(
+    parameter: KSValueParameter,
+    classDeclaration: KSClassDeclaration,
+): Boolean {
+    val parameterName = parameter.name?.asString()
+    val parameterType = parameter.type.resolve()
+
+    // Function to check properties in a class declaration
+    fun checkPropertiesInClass(klass: KSClassDeclaration): Boolean {
+        return klass.getAllProperties().any { property ->
+            property.simpleName.asString() == parameterName &&
+                property.type.resolve() == parameterType
+        }
+    }
+
+    // Check the current class and its ancestors
+    var currentClass: KSClassDeclaration? = classDeclaration
+    while (currentClass != null) {
+        if (checkPropertiesInClass(currentClass)) {
+            return true
+        }
+        currentClass = currentClass.superTypes
+            .mapNotNull { it.resolve().declaration as? KSClassDeclaration }
+            .firstOrNull()
+    }
+
+    return false
 }
