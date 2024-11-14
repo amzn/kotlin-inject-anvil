@@ -4,26 +4,36 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
+import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.STAR
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
+import me.tatarka.inject.annotations.IntoMap
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
+import software.amazon.lastmile.kotlin.inject.anvil.MapKeyAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.argumentOfTypeAt
 import software.amazon.lastmile.kotlin.inject.anvil.decapitalize
+import software.amazon.lastmile.kotlin.inject.anvil.pairTypeOf
 import software.amazon.lastmile.kotlin.inject.anvil.requireQualifiedName
 import kotlin.reflect.KClass
 
@@ -82,14 +92,31 @@ internal class ContributesBindingProcessor(
         val annotations = clazz.findAnnotationsAtLeastOne(ContributesBinding::class)
         checkNoDuplicateBoundTypes(clazz, annotations)
 
+        val mapKeys = clazz.mapKeys()
+
         val boundTypes = annotations
             .map {
-                GeneratedFunction(
-                    boundType = boundType(clazz, it),
-                    multibinding = it.argumentOfTypeAt<Boolean>(this, "multibinding") ?: false,
-                )
+                val boundType = boundType(clazz, it)
+                val multibinding = it.argumentOfTypeAt<Boolean>(this, "multibinding") ?: false
+                if (multibinding && mapKeys.isNotEmpty()) {
+                    mapKeys.map { mapKey ->
+                        GeneratedFunction(
+                            boundType = boundType,
+                            multibinding = true,
+                            mapKey = mapKey,
+                        )
+                    }
+                } else {
+                    listOf(
+                        GeneratedFunction(
+                            boundType = boundType,
+                            multibinding = multibinding,
+                        ),
+                    )
+                }
             }
-            .distinctBy { it.bindingMethodReturnType.canonicalName + it.multibinding }
+            .flatten()
+            .distinctBy { it.bindingMethodReturnType.canonicalName + it.multibinding + it.mapKey }
 
         val fileSpec = FileSpec.builder(componentClassName)
             .addType(
@@ -99,23 +126,13 @@ internal class ContributesBindingProcessor(
                     .addOriginAnnotation(clazz)
                     .addFunctions(
                         boundTypes.map { function ->
-                            val multibindingSuffix = if (function.multibinding) {
-                                "Multibinding"
-                            } else {
-                                ""
-                            }
                             FunSpec
                                 .builder(
                                     "provide${clazz.innerClassNames()}" +
                                         function.bindingMethodReturnType.simpleName +
-                                        multibindingSuffix,
+                                        function.multiBindingSuffix,
                                 )
                                 .addAnnotation(Provides::class)
-                                .apply {
-                                    if (function.multibinding) {
-                                        addAnnotation(IntoSet::class)
-                                    }
-                                }
                                 .apply {
                                     val parameterName = clazz.innerClassNames().decapitalize()
                                     addParameter(
@@ -127,9 +144,31 @@ internal class ContributesBindingProcessor(
                                             .build(),
                                     )
 
-                                    addStatement("return $parameterName")
+                                    when {
+                                        function.multibinding && function.mapKey != null -> {
+                                            addAnnotation(IntoMap::class)
+                                            val (format, value) = function.mapKey.value()
+                                            addStatement("return $format to $parameterName", value)
+                                            returns(
+                                                pairTypeOf(
+                                                    function.mapKey.type(),
+                                                    function.bindingMethodReturnType,
+                                                ),
+                                            )
+                                        }
+
+                                        function.multibinding -> {
+                                            addAnnotation(IntoSet::class)
+                                            addStatement("return $parameterName")
+                                            returns(function.bindingMethodReturnType)
+                                        }
+
+                                        else -> {
+                                            addStatement("return $parameterName")
+                                            returns(function.bindingMethodReturnType)
+                                        }
+                                    }
                                 }
-                                .returns(function.bindingMethodReturnType)
                                 .build()
                         },
                     )
@@ -214,9 +253,131 @@ internal class ContributesBindingProcessor(
     private inner class GeneratedFunction(
         boundType: KSType,
         val multibinding: Boolean,
+        val mapKey: MapKeyAnnotation? = null,
     ) {
         val bindingMethodReturnType by lazy {
             boundType.toClassName()
         }
+
+        val multiBindingSuffix = if (multibinding) {
+            val mapKeySuffix = mapKey
+                ?.multiBindingSuffix()
+                ?.let { "_$it" } ?: ""
+            "Multibinding$mapKeySuffix"
+        } else {
+            ""
+        }
     }
+
+    private fun MapKeyAnnotation.type(): TypeName {
+        val type = when (val value = argument.value) {
+            is Byte -> Byte::class.asTypeName()
+            is Short -> Short::class.asTypeName()
+            is Int -> Int::class.asTypeName()
+            is Long -> Long::class.asTypeName()
+            is Float -> Float::class.asTypeName()
+            is Double -> Double::class.asTypeName()
+            is Char -> Char::class.asTypeName()
+            is String -> String::class.asTypeName()
+            is Boolean -> Boolean::class.asTypeName()
+
+            is KSType -> KClass::class.asTypeName().parameterizedBy(STAR)
+            is KSClassDeclaration -> when (value.classKind) {
+                ClassKind.ENUM_CLASS -> value.toClassName()
+                ClassKind.ENUM_ENTRY -> (value.parent as? KSClassDeclaration)?.toClassName()
+                else -> null
+            }
+
+            else -> null
+        }
+        return requireNotNull(type, argument) {
+            "The argument type could not be determined for " +
+                "${argument.name?.asString()} = ${argument.value}."
+        }
+    }
+
+    private fun MapKeyAnnotation.value(): Pair<String, Any> {
+        val value = argument.value
+
+        val format = when (value) {
+            is Byte,
+            is Short,
+            is Int,
+            is Long,
+            is Float,
+            is Double,
+            is Boolean,
+            -> "%L"
+
+            is Char -> "'%L'"
+            is String -> "%S"
+
+            is KSType -> "%T::class"
+            is KSClassDeclaration -> "%L"
+
+            else -> {
+                val message = "The argument value could not be determined for " +
+                    "${argument.name?.asString()} = ${argument.value}."
+                logger.error(message, argument)
+                throw IllegalArgumentException(message)
+            }
+        }
+
+        val argValue = when (value) {
+            is Byte -> "$value.toByte()"
+            is Short -> "$value.toShort()"
+            is Float -> "$value.toFloat()"
+
+            is Int,
+            is Long,
+            is Double,
+            is Boolean,
+            is Char,
+            is String,
+            -> value
+
+            is KSType -> value.toTypeName()
+            is KSClassDeclaration -> value
+
+            else -> {
+                val message = "The argument value could not be determined for " +
+                    "${argument.name?.asString()} = ${argument.value}."
+                logger.error(message, argument)
+                throw IllegalArgumentException(message)
+            }
+        }
+
+        return format to argValue
+    }
+
+    private fun MapKeyAnnotation.multiBindingSuffix(): String {
+        return when (val value = argument.value) {
+            is Byte -> "${value}b"
+            is Short -> "${value}s"
+
+            is Int,
+            is Long,
+            is Char,
+            is String,
+            is Boolean,
+            -> value.toString()
+
+            is Float,
+            is Double,
+            -> value.toString().replace(".", "_")
+
+            is KSType -> value.declaration.simpleName.asString()
+            is KSClassDeclaration -> value.safeRequiredQualifiedName
+
+            else -> {
+                val message = "The argument value could not be determined for " +
+                    "${argument.name?.asString()} = ${argument.value}."
+                logger.error(message, argument)
+                throw IllegalArgumentException(message)
+            }
+        }
+    }
+
+    private val KSDeclaration.safeRequiredQualifiedName: String
+        get() = qualifiedName!!.asString().replace(".", "_")
 }

@@ -7,6 +7,10 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
 import com.squareup.kotlinpoet.Annotatable
 import com.squareup.kotlinpoet.AnnotationSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.toClassName
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import java.util.Locale
@@ -96,4 +100,10 @@ fun KSDeclaration.requireQualifiedName(contextAware: ContextAware): String =
  */
 fun KClass<*>.requireQualifiedName(): String = requireNotNull(qualifiedName) {
     "Qualified name was null for $this"
+}
+
+fun pairTypeOf(vararg typeNames: TypeName): ParameterizedTypeName {
+    return Pair::class
+        .asTypeName()
+        .parameterizedBy(*typeNames)
 }

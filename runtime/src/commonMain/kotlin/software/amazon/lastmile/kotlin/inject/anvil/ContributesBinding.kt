@@ -64,6 +64,19 @@ import kotlin.reflect.KClass
  * @ContributesBinding(AppScope::class, boundType = Base2::class, multibinding = true)
  * class Impl : Base, Base2
  * ```
+ *
+ * If the class is annotated with a [MapKey] annotation, then the binding will be contributed
+ * to a multi-binding `Map` instead of a `Set`.
+ *
+ * ```
+ * @MapKey
+ * annotation class MyMapKey(val value: String)
+ *
+ * @Inject
+ * @ContributesBinding(AppScope::class, multibinding = true)
+ * @MyMapKey("foo")
+ * class Impl : Base
+ * ```
  */
 @Target(CLASS)
 @Repeatable

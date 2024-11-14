@@ -15,6 +15,7 @@ import assertk.assertions.isEqualTo
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import java.lang.reflect.AnnotatedElement
+import java.lang.reflect.ParameterizedType
 import kotlin.reflect.KClass
 
 fun Assert<AnnotatedElement>.isAnnotatedWith(annotation: KClass<*>) {
@@ -43,4 +44,17 @@ fun Assert<ExitCode>.isError() {
             -> ExitCode.COMPILATION_ERROR
         }
     }.isEqualTo(ExitCode.COMPILATION_ERROR)
+}
+
+fun Assert<ParameterizedType>.isPairOf(
+    first: Class<*>,
+    second: Class<*>,
+) {
+    transform { element ->
+        element.rawType
+    }.isEqualTo(Pair::class.java)
+
+    transform { element ->
+        element.actualTypeArguments
+    }.isEqualTo(arrayOf(first, second))
 }

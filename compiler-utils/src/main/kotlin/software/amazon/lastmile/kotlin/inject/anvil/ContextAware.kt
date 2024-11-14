@@ -1,7 +1,9 @@
 package software.amazon.lastmile.kotlin.inject.anvil
 
+import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.getVisibility
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.ClassKind
@@ -13,6 +15,7 @@ import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Visibility
 import me.tatarka.inject.annotations.Qualifier
@@ -162,6 +165,32 @@ interface ContextAware {
 
     fun KSClassDeclaration.contributedSubcomponent(): KSClassDeclaration {
         return origin().parentDeclaration as KSClassDeclaration
+    }
+
+    fun KSClassDeclaration.mapKeys(): List<MapKeyAnnotation> {
+        return annotations
+            .filter { it.isMapKey() }
+            .map { annotation ->
+                val argument = annotation.requireMapKeyArgument()
+                MapKeyAnnotation(argument = argument)
+            }
+            .toList()
+    }
+
+    private fun KSAnnotation.isMapKey(): Boolean = isTypeAnnotatedWith(MapKey::class)
+
+    @OptIn(KspExperimental::class)
+    private fun <T : Annotation> KSAnnotation.isTypeAnnotatedWith(clazz: KClass<T>): Boolean {
+        return annotationType
+            .resolve()
+            .declaration
+            .isAnnotationPresent(clazz)
+    }
+
+    private fun KSAnnotation.requireMapKeyArgument(): KSValueArgument {
+        return requireNotNull(arguments.singleOrNull(), this) {
+            "MapKey $this must have one argument."
+        }
     }
 
     fun KSClassDeclaration.findAnnotation(annotation: KClass<out Annotation>): KSAnnotation =
