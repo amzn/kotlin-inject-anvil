@@ -5,6 +5,7 @@ package software.amazon.lastmile.kotlin.inject.anvil.processor
 import assertk.assertThat
 import assertk.assertions.doesNotContain
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
 import com.tschuchort.compiletesting.JvmCompilationResult
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -13,7 +14,9 @@ import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.inner
 import software.amazon.lastmile.kotlin.inject.anvil.newComponent
+import java.lang.reflect.Field
 import java.lang.reflect.Method
+import kotlin.reflect.KClass
 
 class GenerateKotlinInjectComponentProcessorTest {
 
@@ -57,6 +60,8 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .invoke(component)
 
             assertThat(impl.isInstance(implValue)).isTrue()
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -102,6 +107,8 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .invoke(component)
 
             assertThat(impl.isInstance(implValue)).isTrue()
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -145,6 +152,8 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .invoke(component)
 
             assertThat(impl.isInstance(implValue)).isTrue()
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -188,6 +197,8 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .invoke(component)
 
             assertThat(impl.isInstance(implValue)).isTrue()
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -228,6 +239,8 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .invoke(component)
 
             assertThat(impl.isInstance(implValue)).isTrue()
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -265,6 +278,8 @@ class GenerateKotlinInjectComponentProcessorTest {
             val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
 
             assertThat(component::class.java.methods.map { it.name }).doesNotContain("getBase")
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -311,6 +326,8 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .invoke(component)
 
             assertThat(impl.isInstance(implValue)).isTrue()
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -358,6 +375,8 @@ class GenerateKotlinInjectComponentProcessorTest {
 
             assertThat(impl.isInstance(implValue)).isTrue()
             assertThat(implValue?.toString()).isEqualTo("hello6")
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -372,4 +391,7 @@ class GenerateKotlinInjectComponentProcessorTest {
 
     private val Class<*>.createFunction: Method
         get() = classLoader.loadClass("${canonicalName}Kt").methods.single { it.name == "create" }
+
+    private val KClass<*>.companionObject: Field?
+        get() = java.fields.single { it.name == "Companion" }
 }
