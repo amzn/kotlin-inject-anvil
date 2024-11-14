@@ -2,6 +2,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/software.amazon.lastmile.kotlin.inject.anvil/compiler.svg?label=Maven%20Central)](https://central.sonatype.com/search?smo=true&namespace=software.amazon.lastmile.kotlin.inject.anvil)
 [![CI](https://github.com/amzn/kotlin-inject-anvil/workflows/CI/badge.svg)](https://github.com/amzn/kotlin-inject-anvil/actions?query=branch%3Amain)
+[![Slack channel](https://img.shields.io/badge/chat-slack-blue.svg?logo=slack)](https://kotlinlang.slack.com/messages/kotlin-inject/)
 
 [kotlin-inject](https://github.com/evant/kotlin-inject) is a compile-time dependency injection
 framework for Kotlin Multiplatform similar to Dagger 2 for Java.
