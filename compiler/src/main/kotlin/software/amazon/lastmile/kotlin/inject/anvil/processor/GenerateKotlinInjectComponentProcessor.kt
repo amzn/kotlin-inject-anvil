@@ -164,6 +164,7 @@ internal class GenerateKotlinInjectComponentProcessor(
                     .addSuperinterface(
                         className.peerClass("KotlinInject${clazz.mergedClassName}"),
                     )
+                    .addType(TypeSpec.companionObjectBuilder().build())
                     .build(),
             )
             .addFunction(
