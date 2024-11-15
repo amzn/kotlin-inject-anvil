@@ -1,12 +1,15 @@
 @file:OptIn(ExperimentalCompilerApi::class)
+@file:Suppress(
+    "UndocumentedPublicClass",
+    "UndocumentedPublicProperty",
+    "UndocumentedPublicFunction",
+)
 
-package software.amazon.lastmile.kotlin.inject.anvil.test
+package software.amazon.lastmile.kotlin.inject.anvil
 
 import com.tschuchort.compiletesting.JvmCompilationResult
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.descriptors.runtime.structure.primitiveByWrapper
-import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
-import software.amazon.lastmile.kotlin.inject.anvil.capitalize
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -30,7 +33,7 @@ val JvmCompilationResult.contributesRenderer: Class<*>
     get() = classLoader.loadClass("software.amazon.test.ContributesRenderer")
 
 fun <T : Any> Class<*>.newComponent(vararg arguments: Any): T {
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("UNCHECKED_CAST", "SpreadOperator")
     return classLoader.loadClass("$packageName.Inject$simpleName")
         .getDeclaredConstructor(
             *arguments.map { arg ->

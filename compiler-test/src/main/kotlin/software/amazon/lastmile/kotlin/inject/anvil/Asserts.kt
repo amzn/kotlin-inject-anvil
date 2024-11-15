@@ -1,7 +1,12 @@
 @file:JvmName("UtilUnitTest")
 @file:OptIn(ExperimentalCompilerApi::class)
+@file:Suppress(
+    "UndocumentedPublicClass",
+    "UndocumentedPublicProperty",
+    "UndocumentedPublicFunction",
+)
 
-package software.amazon.lastmile.kotlin.inject.anvil.test
+package software.amazon.lastmile.kotlin.inject.anvil
 
 import assertk.Assert
 import assertk.assertions.contains

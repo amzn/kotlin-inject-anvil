@@ -1,6 +1,11 @@
 @file:OptIn(ExperimentalCompilerApi::class)
+@file:Suppress(
+    "UndocumentedPublicClass",
+    "UndocumentedPublicProperty",
+    "UndocumentedPublicFunction",
+)
 
-package software.amazon.lastmile.kotlin.inject.anvil.test
+package software.amazon.lastmile.kotlin.inject.anvil
 
 import assertk.assertThat
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
