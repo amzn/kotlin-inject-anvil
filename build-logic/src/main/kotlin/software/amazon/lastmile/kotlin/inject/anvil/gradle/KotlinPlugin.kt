@@ -12,6 +12,7 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import java.io.File
@@ -33,9 +34,11 @@ internal open class KotlinPlugin : Plugin<Project> {
     }
 
     private fun Project.configureKotlinCompile() {
-        tasks.withType(KotlinJvmCompile::class.java).configureEach {
-            it.compilerOptions.jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
+        tasks.withType(KotlinCompilationTask::class.java).configureEach {
             it.compilerOptions.allWarningsAsErrors.set(ci)
+            if (it is KotlinJvmCompile) {
+                it.compilerOptions.jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
+            }
         }
     }
 

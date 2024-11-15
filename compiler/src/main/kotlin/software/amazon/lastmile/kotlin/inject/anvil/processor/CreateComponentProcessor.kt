@@ -19,6 +19,7 @@ import com.squareup.kotlinpoet.KModifier.ACTUAL
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asTypeName
+import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
@@ -61,6 +62,15 @@ internal class CreateComponentProcessor(
         resolver
             .getSymbolsWithAnnotation(MergeComponent.CreateComponent::class)
             .filterIsInstance<KSFunctionDeclaration>()
+            .filter {
+                // We copy all annotations from the expect function, including @CreateComponent,
+                // to the actual functions. Without doing so the Kotlin compiler would print a
+                // warning.
+                //
+                // Without this filter we'd try to process the generated actual function, which
+                // leads to errors.
+                Modifier.ACTUAL !in it.modifiers
+            }
             .onEach { function ->
                 checkIsPublic(function) {
                     "Factory functions for components annotated with `@CreateComponent` must be public."
@@ -81,8 +91,6 @@ internal class CreateComponentProcessor(
         val component = (function.requireReturnType().resolve().declaration as KSClassDeclaration)
             .toClassName()
         val generatedComponent = component.peerClass("KotlinInject${component.simpleName}")
-
-        function.requireContainingFile()
 
         val parametersAsSpec = function.parameters.map {
             ParameterSpec
@@ -109,6 +117,7 @@ internal class CreateComponentProcessor(
                             )
                         }
                     }
+                    .addAnnotations(function.annotations.map { it.toAnnotationSpec() }.toList())
                     .addModifiers(ACTUAL)
                     .addParameters(parametersAsSpec)
                     .returns(component)
