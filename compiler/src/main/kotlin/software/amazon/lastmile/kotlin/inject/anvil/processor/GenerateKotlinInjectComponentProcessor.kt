@@ -20,7 +20,6 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.KModifier.ABSTRACT
 import com.squareup.kotlinpoet.KModifier.INTERNAL
-import com.squareup.kotlinpoet.KModifier.PRIVATE
 import com.squareup.kotlinpoet.KModifier.PROTECTED
 import com.squareup.kotlinpoet.KModifier.PUBLIC
 import com.squareup.kotlinpoet.ParameterSpec
@@ -223,7 +222,7 @@ internal class GenerateKotlinInjectComponentProcessor(
     private fun KSClassDeclaration.getAccessModifier(): KModifier {
         return when (getVisibility()) {
             Visibility.PUBLIC -> PUBLIC
-            Visibility.PRIVATE -> PRIVATE
+            Visibility.PRIVATE -> error("Visibility cannot be private")
             Visibility.INTERNAL -> INTERNAL
             Visibility.LOCAL,
             Visibility.JAVA_PACKAGE,
