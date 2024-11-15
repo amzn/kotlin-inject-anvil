@@ -19,7 +19,6 @@ import com.squareup.kotlinpoet.KModifier.ABSTRACT
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
@@ -118,21 +117,13 @@ internal class GenerateKotlinInjectComponentProcessor(
 
         val isInterface = clazz.classKind == ClassKind.INTERFACE
         val parameters = clazz.primaryConstructor?.parameters ?: emptyList()
-        val componentAnnotations = mutableMapOf<String, TypeName>()
-        val parametersAsSpec = parameters.map {
-            val name = it.requireDelegateName()
+        val parametersAsSpec = parameters.map { parameter ->
             ParameterSpec
                 .builder(
-                    name = name,
-                    type = it.type.toTypeName(),
-                ).apply {
-                    it.annotations.forEach { annotation ->
-                        addAnnotation(annotation.toAnnotationSpec())
-                        if (annotation.isKotlinInjectComponentAnnotation()) {
-                            componentAnnotations[name] = it.type.toTypeName()
-                        }
-                    }
-                }
+                    name = parameter.requireDelegateName(),
+                    type = parameter.type.toTypeName(),
+                )
+                .addAnnotations(parameter.annotations.map { it.toAnnotationSpec() }.toList())
                 .build()
         }
 
@@ -156,15 +147,20 @@ internal class GenerateKotlinInjectComponentProcessor(
                             parameters.joinToString { it.requireDelegateName() },
                         )
                     }
-                    componentAnnotations.forEach { (name, type) ->
-                        addProperty(
-                            PropertySpec.builder(
-                                name,
-                                type,
-                            ).initializer(name).build(),
-                        )
-                    }
                 }
+                .addProperties(
+                    parameters
+                        .filter { parameter ->
+                            parameter.annotations.any { it.isKotlinInjectComponentAnnotation() }
+                        }
+                        .map { parameter ->
+                            val name = parameter.requireDelegateName()
+                            PropertySpec
+                                .builder(name, parameter.type.toTypeName())
+                                .initializer(name)
+                                .build()
+                        },
+                )
         }
 
         val fileSpec = FileSpec.builder(className)
