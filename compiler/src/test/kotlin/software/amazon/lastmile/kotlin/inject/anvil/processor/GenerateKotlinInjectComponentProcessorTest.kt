@@ -248,6 +248,50 @@ class GenerateKotlinInjectComponentProcessorTest {
     }
 
     @Test
+    fun `an internal abstract class`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            internal abstract class ComponentInterface
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            assertThat(component::class.companionObject).isNotNull()
+        }
+    }
+
+    @Test
+    fun `an internal interface`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            internal interface ComponentInterface
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            assertThat(component::class.companionObject).isNotNull()
+        }
+    }
+
+    @Test
     fun `the kotlin-inject component is generated with merged components without a scope`() {
         compile(
             """
