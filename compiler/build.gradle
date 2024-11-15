@@ -10,6 +10,7 @@ test {
 }
 
 dependencies {
+    implementation project(':compiler-utils')
     implementation project(':runtime')
     implementation libs.ksp.api
 
@@ -22,6 +23,7 @@ dependencies {
     // Gives us access to annotations.
     implementation libs.kotlin.inject.runtime
 
+    testImplementation project(':compiler-test')
     testImplementation project(':runtime-optional')
     testImplementation libs.assertk
     testImplementation libs.kotlin.compile.testing.core

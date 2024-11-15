@@ -15,6 +15,9 @@ import com.google.devtools.ksp.symbol.KSType
  * ```
  * Where `AppScope` would represent the "MergeScope".
  */
-internal data class MergeScope(
+data class MergeScope(
+    /**
+     * The contributed type.
+     */
     val type: KSType,
 )

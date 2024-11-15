@@ -1,0 +1,13 @@
+plugins {
+    id 'software.amazon.lib.jvm'
+}
+
+dependencies {
+    api libs.kotlin.compile.testing.core
+    api libs.ksp.api
+
+    implementation project(':compiler-utils')
+    implementation project(':runtime')
+    implementation libs.assertk
+    implementation libs.kotlin.compile.testing.ksp
+}

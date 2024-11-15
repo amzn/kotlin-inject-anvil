@@ -1,5 +1,10 @@
 @file:JvmName("UtilUnitTest")
 @file:OptIn(ExperimentalCompilerApi::class)
+@file:Suppress(
+    "UndocumentedPublicClass",
+    "UndocumentedPublicProperty",
+    "UndocumentedPublicFunction",
+)
 
 package software.amazon.lastmile.kotlin.inject.anvil
 

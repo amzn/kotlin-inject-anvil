@@ -1,4 +1,9 @@
 @file:OptIn(ExperimentalCompilerApi::class)
+@file:Suppress(
+    "UndocumentedPublicClass",
+    "UndocumentedPublicProperty",
+    "UndocumentedPublicFunction",
+)
 
 package software.amazon.lastmile.kotlin.inject.anvil
 
@@ -84,6 +89,9 @@ class Compilation internal constructor(
         }
     }
 
+    /**
+     * Adds the given [result] to the compilation classpath.
+     */
     fun addPreviousCompilationResult(result: JvmCompilationResult): Compilation = apply {
         checkNotCompiled()
         kotlinCompilation.addPreviousResultToClasspath(result)
@@ -145,6 +153,7 @@ fun compile(
     moduleName: String? = null,
     useKsp2: Boolean = true,
     multiplatform: Boolean = false,
+    options: Map<String, String> = emptyMap(),
     exitCode: KotlinCompilation.ExitCode = KotlinCompilation.ExitCode.OK,
     block: JvmCompilationResult.() -> Unit = { },
 ): JvmCompilationResult {
@@ -166,7 +175,7 @@ fun compile(
                 addPreviousCompilationResult(previousCompilationResult)
             }
         }
-        .configureKotlinInjectAnvilProcessor(useKsp2 = useKsp2)
+        .configureKotlinInjectAnvilProcessor(useKsp2 = useKsp2, processorOptions = options)
         .compile(*sources)
         .also {
             if (exitCode == KotlinCompilation.ExitCode.OK) {

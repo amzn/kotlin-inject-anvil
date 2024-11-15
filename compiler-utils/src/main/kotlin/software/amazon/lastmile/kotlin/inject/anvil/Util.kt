@@ -15,20 +15,31 @@ import kotlin.reflect.KClass
 /**
  * The package in which code is generated that should be picked up during the merging phase.
  */
-internal const val LOOKUP_PACKAGE = "amazon.lastmile.inject"
+const val LOOKUP_PACKAGE = "amazon.lastmile.inject"
 
 /**
  * A colon-delimited string whose values are the canonical class names of custom contributing
  * annotations.
  */
-internal const val OPTION_CONTRIBUTING_ANNOTATIONS = "kotlin-inject-anvil-contributing-annotations"
+const val OPTION_CONTRIBUTING_ANNOTATIONS = "kotlin-inject-anvil-contributing-annotations"
 
-internal fun String.decapitalize(): String = replaceFirstChar { it.lowercase(Locale.US) }
-internal fun String.capitalize(): String = replaceFirstChar {
+/**
+ * Makes the given [String] start with a lowercase letter.
+ */
+fun String.decapitalize(): String = replaceFirstChar { it.lowercase(Locale.US) }
+
+/**
+ * Makes the given [String] start with an uppercase letter. Supersedes [String.capitalize],
+ * which is deprecated.
+ */
+fun String.capitalize(): String = replaceFirstChar {
     if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString()
 }
 
-internal fun <T : Annotatable.Builder<T>> Annotatable.Builder<T>.addOriginAnnotation(
+/**
+ * Adds an [Origin] annotation to the given [clazz].
+ */
+fun <T : Annotatable.Builder<T>> Annotatable.Builder<T>.addOriginAnnotation(
     clazz: KSClassDeclaration,
 ): T = addAnnotation(
     AnnotationSpec.builder(Origin::class)
@@ -36,7 +47,10 @@ internal fun <T : Annotatable.Builder<T>> Annotatable.Builder<T>.addOriginAnnota
         .build(),
 )
 
-internal inline fun <reified T> KSAnnotation.argumentOfTypeAt(
+/**
+ * Returns the [name] argument of the receiver [KSAnnotation] as the given [T] type.
+ */
+inline fun <reified T> KSAnnotation.argumentOfTypeAt(
     context: ContextAware,
     name: String,
 ): T? {
@@ -45,7 +59,8 @@ internal inline fun <reified T> KSAnnotation.argumentOfTypeAt(
     }
 }
 
-private inline fun <reified T, R> KSAnnotation.argumentOfTypeWithMapperAt(
+@PublishedApi
+internal inline fun <reified T, R> KSAnnotation.argumentOfTypeWithMapperAt(
     context: ContextAware,
     name: String,
     mapper: (arg: KSValueArgument, value: T) -> R,
@@ -60,16 +75,25 @@ private inline fun <reified T, R> KSAnnotation.argumentOfTypeWithMapperAt(
         }
 }
 
-internal fun KSAnnotation.argumentAt(name: String): KSValueArgument? {
+/**
+ * Returns the [name] argument of the receiver [KSAnnotation] as its [KSValueArgument], if any.
+ */
+fun KSAnnotation.argumentAt(name: String): KSValueArgument? {
     return arguments.find { it.name?.asString() == name }
         ?.takeUnless { it.isDefault() }
 }
 
-internal fun KSDeclaration.requireQualifiedName(contextAware: ContextAware): String =
+/**
+ * Returns the qualified name of the receiver [KSDeclaration].
+ */
+fun KSDeclaration.requireQualifiedName(contextAware: ContextAware): String =
     contextAware.requireNotNull(qualifiedName?.asString(), this) {
         "Qualified name was null for $this"
     }
 
-internal fun KClass<*>.requireQualifiedName(): String = requireNotNull(qualifiedName) {
+/**
+ * Returns the qualified name of the receiver [KClass].
+ */
+fun KClass<*>.requireQualifiedName(): String = requireNotNull(qualifiedName) {
     "Qualified name was null for $this"
 }

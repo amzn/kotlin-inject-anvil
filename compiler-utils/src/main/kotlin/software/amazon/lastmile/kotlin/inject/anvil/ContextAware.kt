@@ -20,8 +20,11 @@ import me.tatarka.inject.annotations.Scope
 import software.amazon.lastmile.kotlin.inject.anvil.internal.Origin
 import kotlin.reflect.KClass
 
-@Suppress("TooManyFunctions")
-internal interface ContextAware {
+@Suppress("TooManyFunctions", "UndocumentedPublicClass", "UndocumentedPublicFunction")
+interface ContextAware {
+    /**
+     * The KSP logger to use by the processor.
+     */
     val logger: KSPLogger
 
     private val scopeFqName get() = Scope::class.requireQualifiedName()
@@ -164,6 +167,9 @@ internal interface ContextAware {
     fun KSClassDeclaration.findAnnotation(annotation: KClass<out Annotation>): KSAnnotation =
         findAnnotations(annotation).single()
 
+    fun KSClassDeclaration.findAnnotationOrNull(annotation: KClass<out Annotation>): KSAnnotation? =
+        findAnnotations(annotation).singleOrNull()
+
     fun KSClassDeclaration.findAnnotations(annotation: KClass<out Annotation>): List<KSAnnotation> {
         val fqName = annotation.requireQualifiedName()
         return annotations.filter { it.isAnnotation(fqName) }.toList()
@@ -199,6 +205,9 @@ internal interface ContextAware {
     fun Resolver.getSymbolsWithAnnotation(annotation: KClass<*>): Sequence<KSAnnotated> =
         getSymbolsWithAnnotation(annotation.requireQualifiedName())
 
+    fun Resolver.getSymbolsWithAnnotations(vararg annotations: KClass<*>): Sequence<KSAnnotated> =
+        sequenceOf(*annotations).flatMap { getSymbolsWithAnnotation(it) }.distinct()
+
     fun KSDeclaration.innerClassNames(separator: String = ""): String {
         val classNames = requireQualifiedName().substring(packageName.asString().length + 1)
         return classNames.replace(".", separator)
@@ -212,5 +221,8 @@ internal interface ContextAware {
             .split(".")
             .joinToString(separator = "") { it.capitalize() }
 
+    /**
+     * Returns the merged class name for the receiver [KSClassDeclaration].
+     */
     val KSClassDeclaration.mergedClassName get() = "${innerClassNames()}Merged"
 }

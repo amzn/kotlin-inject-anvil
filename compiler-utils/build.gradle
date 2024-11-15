@@ -1,0 +1,12 @@
+plugins {
+    id 'software.amazon.lib.jvm'
+}
+
+dependencies {
+    api libs.ksp.api
+    api libs.kotlin.poet
+
+    implementation project(':runtime')
+    implementation libs.kotlin.poet.ksp
+    implementation libs.kotlin.inject.runtime
+}
