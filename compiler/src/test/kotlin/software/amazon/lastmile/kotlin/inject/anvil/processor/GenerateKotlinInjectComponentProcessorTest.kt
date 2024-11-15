@@ -17,6 +17,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.newComponent
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import kotlin.reflect.KClass
+import kotlin.reflect.KVisibility
 
 class GenerateKotlinInjectComponentProcessorTest {
 
@@ -265,6 +266,7 @@ class GenerateKotlinInjectComponentProcessorTest {
         ) {
             val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
 
+            assertThat(component::class.visibility).isEqualTo(KVisibility.INTERNAL)
             assertThat(component::class.companionObject).isNotNull()
         }
     }
@@ -287,6 +289,7 @@ class GenerateKotlinInjectComponentProcessorTest {
         ) {
             val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
 
+            assertThat(component::class.visibility).isEqualTo(KVisibility.INTERNAL)
             assertThat(component::class.companionObject).isNotNull()
         }
     }
