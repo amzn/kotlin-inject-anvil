@@ -1,5 +1,6 @@
 plugins {
     id 'software.amazon.lib.jvm'
+    id 'java-test-fixtures'
 }
 
 dependencies {
@@ -9,4 +10,11 @@ dependencies {
     implementation project(':runtime')
     implementation libs.kotlin.poet.ksp
     implementation libs.kotlin.inject.runtime
+
+    testFixturesApi libs.kotlin.compile.testing.core
+    testFixturesApi libs.ksp.api
+
+    testFixturesImplementation project(':runtime')
+    testFixturesImplementation libs.assertk
+    testFixturesImplementation libs.kotlin.compile.testing.ksp
 }

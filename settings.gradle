@@ -37,7 +37,6 @@ develocity {
 rootProject.name = 'kotlin-inject-anvil'
 
 include ':compiler'
-include ':compiler-test'
 include ':compiler-utils'
 include ':runtime'
 include ':runtime-optional'
