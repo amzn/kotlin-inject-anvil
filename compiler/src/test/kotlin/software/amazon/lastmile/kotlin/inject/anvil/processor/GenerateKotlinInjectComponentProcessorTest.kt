@@ -158,6 +158,49 @@ class GenerateKotlinInjectComponentProcessorTest {
     }
 
     @Test
+    fun `an abstract class supports parameters`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.ForScope
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+            interface Base
+
+            @Inject
+            @SingleIn(AppScope::class)
+            @ContributesBinding(AppScope::class)
+            class Impl(@ForScope(AppScope::class) val string: String, val int: Int) : Base {
+                override fun toString(): String = string + int
+            }
+
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            abstract class ComponentInterface(
+                @get:Provides @get:ForScope(AppScope::class) val string: String,
+                @get:Provides val int: Int,
+            ) {
+                abstract val base: Base
+            }
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>("", 5)
+
+            val implValue = component::class.java.methods
+                .single { it.name == "getBase" }
+                .invoke(component)
+
+            assertThat(impl.isInstance(implValue)).isTrue()
+        }
+    }
+
+    @Test
     fun `an abstract class supports component parameters`() {
         compile(
             """
