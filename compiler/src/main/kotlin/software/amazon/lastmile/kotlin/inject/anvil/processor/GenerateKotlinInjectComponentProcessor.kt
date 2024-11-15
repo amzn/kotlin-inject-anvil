@@ -11,12 +11,14 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier.ABSTRACT
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
@@ -115,12 +117,13 @@ internal class GenerateKotlinInjectComponentProcessor(
 
         val isInterface = clazz.classKind == ClassKind.INTERFACE
         val parameters = clazz.primaryConstructor?.parameters ?: emptyList()
-        val parametersAsSpec = parameters.map {
+        val parametersAsSpec = parameters.map { parameter ->
             ParameterSpec
                 .builder(
-                    name = it.requireName(),
-                    type = it.type.toTypeName(),
+                    name = parameter.requireDelegateName(),
+                    type = parameter.type.toTypeName(),
                 )
+                .addAnnotations(parameter.annotations.map { it.toAnnotationSpec() }.toList())
                 .build()
         }
 
@@ -141,10 +144,23 @@ internal class GenerateKotlinInjectComponentProcessor(
                                 .build(),
                         )
                         addSuperclassConstructorParameter(
-                            parameters.joinToString { it.requireName() },
+                            parameters.joinToString { it.requireDelegateName() },
                         )
                     }
                 }
+                .addProperties(
+                    parameters
+                        .filter { parameter ->
+                            parameter.annotations.any { it.isKotlinInjectComponentAnnotation() }
+                        }
+                        .map { parameter ->
+                            val name = parameter.requireDelegateName()
+                            PropertySpec
+                                .builder(name, parameter.type.toTypeName())
+                                .initializer(name)
+                                .build()
+                        },
+                )
         }
 
         val fileSpec = FileSpec.builder(className)
@@ -184,5 +200,13 @@ internal class GenerateKotlinInjectComponentProcessor(
             .build()
 
         fileSpec.writeTo(codeGenerator, aggregating = false)
+    }
+
+    /**
+     * Creates a custom name for parameters of the new Kotlin Inject interface
+     * as to not require parameters to be open.
+     */
+    private fun KSValueParameter.requireDelegateName(): String {
+        return "${this.requireName()}Delegate"
     }
 }

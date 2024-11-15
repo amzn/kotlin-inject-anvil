@@ -203,6 +203,51 @@ class GenerateKotlinInjectComponentProcessorTest {
     }
 
     @Test
+    fun `an abstract class supports component parameters`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Component
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.ForScope
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            abstract class ComponentInterface(
+                @Component val childComponent: ChildComponent,
+            ) {
+                abstract val string: String
+            }
+
+            @Component
+            abstract class ChildComponent {
+                @Provides
+                fun provideString(): String = "test"
+            }
+
+            """,
+        ) {
+            val childComponent = classLoader.loadClass("software.amazon.test.ChildComponent")
+                .newComponent<Any>()
+
+            val component = componentInterface.kotlinInjectComponent.createFunction
+                .invoke(null, componentInterface.kotlinInjectComponent::class, childComponent)
+
+            val implValue = component::class.java.methods
+                .single { it.name == "getString" }
+                .invoke(component)
+
+            assertThat(implValue).isEqualTo("test")
+        }
+    }
+
+    @Test
     fun `the kotlin-inject component is generated with merged components without a scope`() {
         compile(
             """
