@@ -208,7 +208,7 @@ internal class GenerateKotlinInjectComponentProcessor(
 
     /**
      * Creates a custom name for parameters of the new Kotlin Inject interface
-     * as to not require parameters to be open
+     * as to not require parameters to be open.
      */
     private fun KSValueParameter.requireDelegateName(): String {
         return "${this.requireName()}Delegate"
