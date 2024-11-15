@@ -4,7 +4,6 @@ package software.amazon.lastmile.kotlin.inject.anvil.processor
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.isAnnotationPresent
-import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -12,11 +11,11 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier.ABSTRACT
-import com.squareup.kotlinpoet.KModifier.OVERRIDE
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
@@ -121,18 +120,16 @@ internal class GenerateKotlinInjectComponentProcessor(
         val parameters = clazz.primaryConstructor?.parameters ?: emptyList()
         val componentAnnotations = mutableMapOf<String, TypeName>()
         val parametersAsSpec = parameters.map {
+            val name = it.requireDelegateName()
             ParameterSpec
                 .builder(
-                    name = it.requireName(),
+                    name = name,
                     type = it.type.toTypeName(),
                 ).apply {
                     it.annotations.forEach { annotation ->
                         addAnnotation(annotation.toAnnotationSpec())
                         if (annotation.isKotlinInjectComponentAnnotation()) {
-                            require(it.type.resolve().declaration.isOpen()) {
-                                "Component parameter must be open"
-                            }
-                            componentAnnotations[it.requireName()] = it.type.toTypeName()
+                            componentAnnotations[name] = it.type.toTypeName()
                         }
                     }
                 }
@@ -156,7 +153,7 @@ internal class GenerateKotlinInjectComponentProcessor(
                                 .build(),
                         )
                         addSuperclassConstructorParameter(
-                            parameters.joinToString { it.requireName() },
+                            parameters.joinToString { it.requireDelegateName() },
                         )
                     }
                     componentAnnotations.forEach { (name, type) ->
@@ -164,7 +161,7 @@ internal class GenerateKotlinInjectComponentProcessor(
                             PropertySpec.builder(
                                 name,
                                 type,
-                            ).initializer(name).addModifiers(OVERRIDE).build(),
+                            ).initializer(name).build(),
                         )
                     }
                 }
@@ -207,5 +204,13 @@ internal class GenerateKotlinInjectComponentProcessor(
             .build()
 
         fileSpec.writeTo(codeGenerator, aggregating = false)
+    }
+
+    /**
+     * Creates a custom name for parameters of the new Kotlin Inject interface
+     * as to not require parameters to be open
+     */
+    private fun KSValueParameter.requireDelegateName(): String {
+        return "${this.requireName()}Delegate"
     }
 }

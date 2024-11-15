@@ -220,7 +220,7 @@ class GenerateKotlinInjectComponentProcessorTest {
             @MergeComponent(AppScope::class)
             @SingleIn(AppScope::class)
             abstract class ComponentInterface(
-                @Component open val childComponent: ChildComponent,
+                @Component val childComponent: ChildComponent,
             ) {
                 abstract val string: String
             }
