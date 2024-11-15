@@ -197,6 +197,8 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .invoke(component)
 
             assertThat(impl.isInstance(implValue)).isTrue()
+
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 
@@ -241,9 +243,7 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .single { it.name == "getString" }
                 .invoke(component)
 
-            assertThat(impl.isInstance(implValue)).isTrue()
-
-            assertThat(component::class.companionObject).isNotNull()
+            assertThat(implValue).isEqualTo("test")
         }
     }
 
