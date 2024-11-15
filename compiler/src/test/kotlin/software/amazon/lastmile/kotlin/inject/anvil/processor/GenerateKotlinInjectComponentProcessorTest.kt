@@ -158,11 +158,12 @@ class GenerateKotlinInjectComponentProcessorTest {
     }
 
     @Test
-    fun `an abstract class supports parameters`() {
+    fun `an abstract class supports component parameters`() {
         compile(
             """
             package software.amazon.test
                             
+            import me.tatarka.inject.annotations.Component
             import me.tatarka.inject.annotations.Inject
             import me.tatarka.inject.annotations.Provides
             import software.amazon.lastmile.kotlin.inject.anvil.AppScope
@@ -171,29 +172,30 @@ class GenerateKotlinInjectComponentProcessorTest {
             import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
             import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-            interface Base
-
-            @Inject
-            @SingleIn(AppScope::class)
-            @ContributesBinding(AppScope::class)
-            class Impl(@ForScope(AppScope::class) val string: String, val int: Int) : Base {
-                override fun toString(): String = string + int
-            }
-
             @MergeComponent(AppScope::class)
             @SingleIn(AppScope::class)
             abstract class ComponentInterface(
-                @get:Provides @get:ForScope(AppScope::class) val string: String,
-                @get:Provides val int: Int,
+                @Component open val childComponent: ChildComponent,
             ) {
-                abstract val base: Base
+                abstract val string: String
             }
+
+            @Component
+            abstract class ChildComponent {
+                @Provides
+                fun provideString(): String = "test"
+            }
+
             """,
         ) {
-            val component = componentInterface.kotlinInjectComponent.newComponent<Any>("", 5)
+            val childComponent = classLoader.loadClass("software.amazon.test.ChildComponent")
+                .newComponent<Any>()
+
+            val component = componentInterface.kotlinInjectComponent.createFunction
+                .invoke(null, componentInterface.kotlinInjectComponent::class, childComponent)
 
             val implValue = component::class.java.methods
-                .single { it.name == "getBase" }
+                .single { it.name == "getString" }
                 .invoke(component)
 
             assertThat(impl.isInstance(implValue)).isTrue()

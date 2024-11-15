@@ -4,6 +4,7 @@ package software.amazon.lastmile.kotlin.inject.anvil.processor
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.isAnnotationPresent
+import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -15,8 +16,11 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier.ABSTRACT
+import com.squareup.kotlinpoet.KModifier.OVERRIDE
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
@@ -115,12 +119,23 @@ internal class GenerateKotlinInjectComponentProcessor(
 
         val isInterface = clazz.classKind == ClassKind.INTERFACE
         val parameters = clazz.primaryConstructor?.parameters ?: emptyList()
+        val componentAnnotations = mutableMapOf<String, TypeName>()
         val parametersAsSpec = parameters.map {
             ParameterSpec
                 .builder(
                     name = it.requireName(),
                     type = it.type.toTypeName(),
-                )
+                ).apply {
+                    it.annotations.forEach { annotation ->
+                        addAnnotation(annotation.toAnnotationSpec())
+                        if (annotation.isKotlinInjectComponentAnnotation()) {
+                            require(it.type.resolve().declaration.isOpen()) {
+                                "Component parameter must be open"
+                            }
+                            componentAnnotations[it.requireName()] = it.type.toTypeName()
+                        }
+                    }
+                }
                 .build()
         }
 
@@ -142,6 +157,14 @@ internal class GenerateKotlinInjectComponentProcessor(
                         )
                         addSuperclassConstructorParameter(
                             parameters.joinToString { it.requireName() },
+                        )
+                    }
+                    componentAnnotations.forEach { (name, type) ->
+                        addProperty(
+                            PropertySpec.builder(
+                                name,
+                                type,
+                            ).initializer(name).addModifiers(OVERRIDE).build(),
                         )
                     }
                 }
