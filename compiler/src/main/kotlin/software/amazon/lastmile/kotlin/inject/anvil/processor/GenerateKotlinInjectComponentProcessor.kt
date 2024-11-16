@@ -3,6 +3,7 @@
 package software.amazon.lastmile.kotlin.inject.anvil.processor
 
 import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
@@ -15,7 +16,9 @@ import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.KModifier.ABSTRACT
+import com.squareup.kotlinpoet.KModifier.PUBLIC
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
@@ -24,6 +27,7 @@ import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toKModifier
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import me.tatarka.inject.annotations.Component
@@ -96,7 +100,7 @@ internal class GenerateKotlinInjectComponentProcessor(
             .filter { it.requireQualifiedName() !in processedComponents }
             .filter { !it.isAnnotationPresent(Component::class) }
             .onEach {
-                checkIsPublic(it)
+                checkNotPrivate(it)
                 checkHasScope(it)
             }
             .forEach {
@@ -131,10 +135,12 @@ internal class GenerateKotlinInjectComponentProcessor(
             TypeSpec
                 .interfaceBuilder(className)
                 .addSuperinterface(clazz.toClassName())
+                .addModifiers(clazz.getAccessModifier())
         } else {
             TypeSpec
                 .classBuilder(className)
                 .addModifiers(ABSTRACT)
+                .addModifiers(clazz.getAccessModifier())
                 .superclass(clazz.toClassName())
                 .apply {
                     if (parameters.isNotEmpty()) {
@@ -195,6 +201,7 @@ internal class GenerateKotlinInjectComponentProcessor(
                         "return %T::class.create(${parametersAsSpec.joinToString { it.name }})",
                         className,
                     )
+                    .addModifiers(clazz.getAccessModifier())
                     .build(),
             )
             .build()
@@ -208,5 +215,9 @@ internal class GenerateKotlinInjectComponentProcessor(
      */
     private fun KSValueParameter.requireDelegateName(): String {
         return "${this.requireName()}Delegate"
+    }
+
+    private fun KSClassDeclaration.getAccessModifier(): KModifier {
+        return getVisibility().toKModifier() ?: PUBLIC
     }
 }

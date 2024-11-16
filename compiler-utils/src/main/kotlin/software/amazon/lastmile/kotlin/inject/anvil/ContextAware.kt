@@ -65,6 +65,13 @@ interface ContextAware {
         check(declaration.getVisibility() == Visibility.PUBLIC, declaration, lazyMessage)
     }
 
+    fun checkNotPrivate(
+        declaration: KSDeclaration,
+        lazyMessage: () -> String = { "Contribute component interfaces must not be private." },
+    ) {
+        check(declaration.getVisibility() != Visibility.PRIVATE, declaration, lazyMessage)
+    }
+
     fun checkIsInterface(
         clazz: KSClassDeclaration,
         lazyMessage: () -> String = { "Only interfaces can be contributed." },

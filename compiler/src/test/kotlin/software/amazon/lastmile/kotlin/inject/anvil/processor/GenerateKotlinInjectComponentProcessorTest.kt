@@ -17,6 +17,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.newComponent
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import kotlin.reflect.KClass
+import kotlin.reflect.KVisibility
 
 class GenerateKotlinInjectComponentProcessorTest {
 
@@ -244,6 +245,52 @@ class GenerateKotlinInjectComponentProcessorTest {
                 .invoke(component)
 
             assertThat(implValue).isEqualTo("test")
+        }
+    }
+
+    @Test
+    fun `internal visibility for component interface is supported for an abstract class`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            internal abstract class ComponentInterface
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            assertThat(component::class.visibility).isEqualTo(KVisibility.INTERNAL)
+            assertThat(component::class.companionObject).isNotNull()
+        }
+    }
+
+    @Test
+    fun `internal visibility for component interface is supported`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+            import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+
+
+            @MergeComponent(AppScope::class)
+            @SingleIn(AppScope::class)
+            internal interface ComponentInterface
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            assertThat(component::class.visibility).isEqualTo(KVisibility.INTERNAL)
+            assertThat(component::class.companionObject).isNotNull()
         }
     }
 

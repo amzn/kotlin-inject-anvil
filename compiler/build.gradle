@@ -28,6 +28,7 @@ dependencies {
     testImplementation libs.assertk
     testImplementation libs.kotlin.compile.testing.core
     testImplementation libs.kotlin.compile.testing.ksp
+    testImplementation libs.kotlin.reflect
 
     testImplementation platform(libs.junit.jupiter.bom)
     testImplementation libs.junit.jupiter.core
