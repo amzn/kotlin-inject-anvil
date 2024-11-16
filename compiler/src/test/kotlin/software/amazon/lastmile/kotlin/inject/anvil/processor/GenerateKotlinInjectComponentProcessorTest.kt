@@ -249,7 +249,7 @@ class GenerateKotlinInjectComponentProcessorTest {
     }
 
     @Test
-    fun `an internal abstract class`() {
+    fun `internal visibility for component interface is supported for an abstract class`() {
         compile(
             """
             package software.amazon.test
@@ -272,7 +272,7 @@ class GenerateKotlinInjectComponentProcessorTest {
     }
 
     @Test
-    fun `an internal interface`() {
+    fun `internal visibility for component interface is supported`() {
         compile(
             """
             package software.amazon.test

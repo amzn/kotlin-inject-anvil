@@ -13,14 +13,11 @@ import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSValueParameter
-import com.google.devtools.ksp.symbol.Visibility
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.KModifier.ABSTRACT
-import com.squareup.kotlinpoet.KModifier.INTERNAL
-import com.squareup.kotlinpoet.KModifier.PROTECTED
 import com.squareup.kotlinpoet.KModifier.PUBLIC
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -30,6 +27,7 @@ import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toKModifier
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import me.tatarka.inject.annotations.Component
@@ -220,14 +218,6 @@ internal class GenerateKotlinInjectComponentProcessor(
     }
 
     private fun KSClassDeclaration.getAccessModifier(): KModifier {
-        return when (getVisibility()) {
-            Visibility.PUBLIC -> PUBLIC
-            Visibility.PRIVATE -> error("Visibility cannot be private")
-            Visibility.INTERNAL -> INTERNAL
-            Visibility.LOCAL,
-            Visibility.JAVA_PACKAGE,
-            Visibility.PROTECTED,
-            -> PROTECTED
-        }
+        return getVisibility().toKModifier() ?: PUBLIC
     }
 }
