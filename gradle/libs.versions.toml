@@ -16,7 +16,7 @@ kotlinx-binaryCompatibilityValidator = "0.16.3"
 ksp = "2.0.21-1.0.28"
 ktlint-binary = "1.2.1"
 ktlint-gradle = "12.1.1"
-maven-publish = "0.29.0"
+maven-publish = "0.30.0"
 
 [libraries]
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
