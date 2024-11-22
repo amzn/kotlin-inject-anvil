@@ -111,7 +111,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to Maven Local
-        run: ./gradlew publishToMavenLocal --stacktrace --show-version
+        run: ./gradlew publishToMavenLocal --stacktrace --show-version --no-configuration-cache
 
   test-build-logic:
     runs-on: ubuntu-latest
