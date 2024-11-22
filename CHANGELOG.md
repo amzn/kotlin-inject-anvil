@@ -17,6 +17,24 @@
 ### Other Notes & Contributions
 
 
+## [0.1.1] - 2024-11-21
+
+### Added
+
+* Allow `@MergeComponent`s to be `public`, `internal`, or `protected`, see #77.
+
+### Changed
+
+* Upgraded the KSP to Kotlin `2.0.21-1.0.28`.
+
+### Fixed
+
+* Add an `override` modifier if a subcomponent factory parameter matches a property in the subcomponent, see #75.
+* Add a companion object to generated KotlinInjectComponent classes, see #74.
+* Copy all annotations from `expect fun` functions annotated with `@CreateComponent` to the generated `actual fun` functions to avoid a Kotlin compiler warning, see #72.
+* Support component parameters for components annotated with `@MergeComponent`, see #76.
+
+
 ## [0.1.0] - 2024-11-04
 
 ### Added
@@ -84,7 +102,9 @@
 
 - Initial release.
 
-[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.0.5...HEAD
+[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/square/anvil/releases/tag/0.1.1
+[0.1.0]: https://github.com/square/anvil/releases/tag/0.1.0
 [0.0.5]: https://github.com/square/anvil/releases/tag/0.0.5
 [0.0.4]: https://github.com/square/anvil/releases/tag/0.0.4
 [0.0.3]: https://github.com/square/anvil/releases/tag/0.0.3
