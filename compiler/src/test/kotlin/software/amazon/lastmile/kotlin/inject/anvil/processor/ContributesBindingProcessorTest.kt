@@ -8,6 +8,7 @@ import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
 import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
+import me.tatarka.inject.annotations.IntoMap
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -18,7 +19,10 @@ import software.amazon.lastmile.kotlin.inject.anvil.generatedComponent
 import software.amazon.lastmile.kotlin.inject.anvil.inner
 import software.amazon.lastmile.kotlin.inject.anvil.isAnnotatedWith
 import software.amazon.lastmile.kotlin.inject.anvil.isNotAnnotatedWith
+import software.amazon.lastmile.kotlin.inject.anvil.isPairOf
 import software.amazon.lastmile.kotlin.inject.anvil.origin
+import java.lang.reflect.Method
+import java.lang.reflect.ParameterizedType
 
 class ContributesBindingProcessorTest {
 
@@ -314,6 +318,150 @@ class ContributesBindingProcessorTest {
         }
     }
 
+    @Test
+    fun `it's an error when a map key does not have an argument`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.MapKey
+            import me.tatarka.inject.annotations.Inject
+
+            interface Base
+
+            @MapKey
+            annotation class MyMapKey
+
+            @Inject
+            @ContributesBinding(Unit::class, multibinding = true)
+            @MyMapKey
+            class Impl : Base
+            """,
+            exitCode = COMPILATION_ERROR,
+        ) {
+            assertThat(messages).contains(
+                "MapKey @MyMapKey must have one argument.",
+            )
+        }
+    }
+
+    @Test
+    fun `map keys are repeatable`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.StringKey
+            import me.tatarka.inject.annotations.Inject
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(Unit::class, multibinding = true)
+            @StringKey("foo")
+            @StringKey("bar")
+            class Impl : Base 
+            """,
+        ) {
+            val generatedComponent = impl.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent.origin).isEqualTo(impl)
+
+            with(generatedComponent.declaredMethods.single { it.name == "provideImplBaseMultibinding_foo" }) {
+                assertThat(parameters.single().type).isEqualTo(impl)
+                assertThat(parameterizedReturnType).isPairOf(String::class.java, base)
+                assertThat(this).isAnnotatedWith(IntoMap::class)
+            }
+
+            with(generatedComponent.declaredMethods.single { it.name == "provideImplBaseMultibinding_bar" }) {
+                assertThat(parameters.single().type).isEqualTo(impl)
+                assertThat(parameterizedReturnType).isPairOf(String::class.java, base)
+                assertThat(this).isAnnotatedWith(Provides::class)
+                assertThat(this).isAnnotatedWith(IntoMap::class)
+            }
+        }
+    }
+
+    @Test
+    fun `a component interface is generated in the lookup package for a contributed map multibinding`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.StringKey
+            import me.tatarka.inject.annotations.Inject
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(Unit::class, multibinding = true)
+            @StringKey("foo")
+            class Impl : Base 
+            """,
+        ) {
+            val generatedComponent = impl.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent.origin).isEqualTo(impl)
+
+            val method = generatedComponent.declaredMethods.single()
+            assertThat(method.name).isEqualTo("provideImplBaseMultibinding_foo")
+            assertThat(method.parameters.single().type).isEqualTo(impl)
+            assertThat(method.parameterizedReturnType).isPairOf(String::class.java, base)
+            assertThat(method).isAnnotatedWith(Provides::class)
+            assertThat(method).isAnnotatedWith(IntoMap::class)
+        }
+    }
+
+    @Test
+    fun `both binding and multibinding component interfaces can be generated in the lookup package for a contributed map multibinding`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.StringKey
+            import me.tatarka.inject.annotations.Inject
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(Unit::class, multibinding = false)
+            @ContributesBinding(Unit::class, multibinding = true)
+            @StringKey("foo")
+            class Impl : Base 
+            """,
+        ) {
+            val generatedComponent = impl.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent.origin).isEqualTo(impl)
+
+            assertThat(generatedComponent.declaredMethods).hasSize(2)
+
+            val bindingMethod = generatedComponent.declaredMethods.first {
+                it.name == "provideImplBase"
+            }
+            assertThat(bindingMethod.parameters.single().type).isEqualTo(impl)
+            assertThat(bindingMethod.returnType).isEqualTo(base)
+            assertThat(bindingMethod).isAnnotatedWith(Provides::class)
+            assertThat(bindingMethod).isNotAnnotatedWith(IntoMap::class)
+
+            val multibindingBindingMethod = generatedComponent.declaredMethods.first {
+                it.name == "provideImplBaseMultibinding_foo"
+            }
+            assertThat(multibindingBindingMethod.parameters.single().type).isEqualTo(impl)
+            assertThat(multibindingBindingMethod.parameterizedReturnType)
+                .isPairOf(String::class.java, base)
+            assertThat(multibindingBindingMethod).isAnnotatedWith(Provides::class)
+            assertThat(multibindingBindingMethod).isAnnotatedWith(IntoMap::class)
+        }
+    }
+
     private val JvmCompilationResult.base: Class<*>
         get() = classLoader.loadClass("software.amazon.test.Base")
 
@@ -325,4 +473,7 @@ class ContributesBindingProcessorTest {
 
     private val JvmCompilationResult.impl2: Class<*>
         get() = classLoader.loadClass("software.amazon.test.Impl2")
+
+    private val Method.parameterizedReturnType: ParameterizedType
+        get() = (genericReturnType as ParameterizedType)
 }
