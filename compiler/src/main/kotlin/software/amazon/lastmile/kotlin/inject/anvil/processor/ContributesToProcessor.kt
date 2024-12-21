@@ -61,6 +61,8 @@ internal class ContributesToProcessor(
     private fun generateComponentInterface(clazz: KSClassDeclaration) {
         val componentClassName = ClassName(LOOKUP_PACKAGE, clazz.safeClassName)
 
+        checkReplacesHasSameScope(clazz, listOf(clazz.findAnnotation(ContributesTo::class)))
+
         val fileSpec = FileSpec.builder(componentClassName)
             .addType(
                 TypeSpec

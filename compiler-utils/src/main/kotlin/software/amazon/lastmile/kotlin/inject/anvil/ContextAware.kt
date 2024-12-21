@@ -226,6 +226,36 @@ interface ContextAware {
         return classNames.replace(".", separator)
     }
 
+    fun KSAnnotation.getReplaces(): List<KSClassDeclaration> {
+        val argument = arguments.firstOrNull { it.name?.asString() == "replaces" }
+            ?: return emptyList()
+
+        @Suppress("UNCHECKED_CAST")
+        return (argument.value as? List<KSType>)
+            ?.map { it.declaration as KSClassDeclaration }
+            ?: emptyList()
+    }
+
+    fun checkReplacesHasSameScope(
+        clazz: KSClassDeclaration,
+        annotations: List<KSAnnotation>,
+    ) {
+        val scope = clazz.scope()
+
+        annotations
+            .flatMap { it.getReplaces() }
+            .map { replacedClass ->
+                checkHasScope(replacedClass)
+
+                check(scope == replacedClass.scope(), clazz) {
+                    "Replaced types must use the same scope. ${clazz.requireQualifiedName()} " +
+                        "uses scope ${scope.type}, but tries to replace " +
+                        "${replacedClass.requireQualifiedName()} using scope " +
+                        "${replacedClass.scope().type}."
+                }
+            }
+    }
+
     /**
      * Return `software.amazon.Test` into `SoftwareAmazonTest`.
      */

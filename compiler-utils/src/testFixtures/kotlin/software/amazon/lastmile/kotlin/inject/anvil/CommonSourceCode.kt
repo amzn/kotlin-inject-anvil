@@ -17,6 +17,12 @@ import java.lang.reflect.Modifier
 val JvmCompilationResult.componentInterface: Class<*>
     get() = classLoader.loadClass("software.amazon.test.ComponentInterface")
 
+val Class<*>.kotlinInjectComponent: Class<*>
+    get() = classLoader.loadClass(
+        "$packageName.KotlinInject" +
+            canonicalName.substring(packageName.length + 1).replace(".", ""),
+    )
+
 val Class<*>.inner: Class<*>
     get() = classes.single { it.simpleName == "Inner" }
 

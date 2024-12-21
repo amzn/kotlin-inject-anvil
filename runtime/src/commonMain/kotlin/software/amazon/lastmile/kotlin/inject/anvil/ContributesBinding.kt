@@ -64,6 +64,19 @@ import kotlin.reflect.KClass
  * @ContributesBinding(AppScope::class, boundType = Base2::class, multibinding = true)
  * class Impl : Base, Base2
  * ```
+ *
+ * ## Replacement
+ *
+ * Contributed bindings can replace other contributed bindings and component interfaces with
+ * the [replaces] parameter. This is especially helpful for different bindings in tests.
+ * ```
+ * @Inject
+ * @ContributesBinding(
+ *     scope = AppScope::class,
+ *     replaces = [RealAuthenticator::class]
+ * )
+ * class FakeAuthenticator : Authenticator
+ * ```
  */
 @Target(CLASS)
 @Repeatable
@@ -82,4 +95,10 @@ public annotation class ContributesBinding(
      * annotated with `@IntoSet`.
      */
     val multibinding: Boolean = false,
+    /**
+     * This contributed binding will replace these contributed classes. The array is allowed to
+     * include other contributed bindings and contributed component interfaces. All replaced
+     * classes must use the same scope.
+     */
+    val replaces: Array<KClass<*>> = [],
 )

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.inner
+import software.amazon.lastmile.kotlin.inject.anvil.kotlinInjectComponent
 import software.amazon.lastmile.kotlin.inject.anvil.newComponent
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -474,12 +475,6 @@ class GenerateKotlinInjectComponentProcessorTest {
 
     private val JvmCompilationResult.impl: Class<*>
         get() = classLoader.loadClass("software.amazon.test.Impl")
-
-    private val Class<*>.kotlinInjectComponent: Class<*>
-        get() = classLoader.loadClass(
-            "$packageName.KotlinInject" +
-                canonicalName.substring(packageName.length + 1).replace(".", ""),
-        )
 
     private val Class<*>.createFunction: Method
         get() = classLoader.loadClass("${canonicalName}Kt").methods.single { it.name == "create" }
