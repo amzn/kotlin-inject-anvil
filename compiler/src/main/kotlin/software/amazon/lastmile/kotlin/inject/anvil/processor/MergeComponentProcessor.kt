@@ -140,6 +140,7 @@ internal class MergeComponentProcessor(
         return emptyList()
     }
 
+    @Suppress("LongMethod")
     private fun generateComponentInterface(
         resolver: Resolver,
         clazz: KSClassDeclaration,
@@ -178,6 +179,50 @@ internal class MergeComponentProcessor(
                     it.contributedSubcomponent().requireQualifiedName() !in excludeNames
             }
             .toList()
+            .let { componentInterfaces ->
+                // This block removes all contributed classes that were replaced. For this we
+                // need the full list contributed classes. For each class we get all replaced
+                // classes. Contributed classes that are not part of the replaced classes should
+                // be merged. Contributed classes that are part of the replaced class list should
+                // be removed.
+
+                val replacedClasses = componentInterfaces
+                    .flatMap { it.originChain() }
+                    .mapNotNull { contributedClass ->
+                        val contributeAnnotations = contributedClass
+                            .findAnnotations(ContributesBinding::class)
+                            .plus(contributedClass.findAnnotations(ContributesTo::class))
+
+                        val replaceClasses = contributeAnnotations.flatMap { it.getReplaces() }
+                        if (replaceClasses.isEmpty()) {
+                            return@mapNotNull null
+                        }
+
+                        contributedClass to replaceClasses
+                    }
+                    .toMap()
+                    .let { originToReplacedClasses ->
+                        // originToReplacedClasses contains contributed classes (key) with all
+                        // the classes (value) that it replaces.
+
+                        val allReplacedClasses = originToReplacedClasses.values.flatten()
+
+                        // A class that replaces other class but is being replaced itself should
+                        // not replace the other classes. That's what this filter ensures.
+                        originToReplacedClasses.filter { (contributedClass, _) ->
+                            contributedClass !in allReplacedClasses
+                        }
+                    }
+                    .values
+                    .flatten()
+                    .map { it.requireQualifiedName() }
+
+                componentInterfaces.filter { componentInterface ->
+                    componentInterface.originChain().none { origin ->
+                        origin.requireQualifiedName() in replacedClasses
+                    }
+                }
+            }
 
         val generatedSubcomponents = contributesSubcomponentProcessor.generateFinalComponents(
             parentScopeComponent = clazz,

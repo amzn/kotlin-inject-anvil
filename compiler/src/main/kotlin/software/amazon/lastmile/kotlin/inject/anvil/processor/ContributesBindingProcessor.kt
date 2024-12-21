@@ -81,6 +81,7 @@ internal class ContributesBindingProcessor(
 
         val annotations = clazz.findAnnotationsAtLeastOne(ContributesBinding::class)
         checkNoDuplicateBoundTypes(clazz, annotations)
+        checkReplacesHasSameScope(clazz, annotations)
 
         val boundTypes = annotations
             .map {
