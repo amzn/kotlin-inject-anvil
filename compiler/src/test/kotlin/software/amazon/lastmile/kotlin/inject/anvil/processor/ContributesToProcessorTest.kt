@@ -93,4 +93,60 @@ class ContributesToProcessorTest {
             assertThat(messages).contains("Only interfaces can be contributed.")
         }
     }
+
+    @Test
+    fun `a replaced component must use the same scope`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+
+            interface Base
+
+            @ContributesTo(AppScope::class)
+            interface Component1
+
+            @ContributesTo(Unit::class, replaces = [Component1::class])
+            interface Component2
+            """,
+            exitCode = COMPILATION_ERROR,
+        ) {
+            assertThat(messages).contains(
+                "Replaced types must use the same scope. software.amazon.test." +
+                    "Component2 uses scope Unit, but tries to replace software.amazon.test." +
+                    "Component1 using scope AppScope.",
+            )
+        }
+    }
+
+    @Test
+    fun `a replaced component must use the same scope without named parameter`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+
+            interface Base
+
+            @ContributesTo(AppScope::class)
+            interface Component1
+
+            @ContributesTo(Unit::class, [Component1::class])
+            interface Component2
+            """,
+            exitCode = COMPILATION_ERROR,
+        ) {
+            assertThat(messages).contains(
+                "Replaced types must use the same scope. software.amazon.test." +
+                    "Component2 uses scope Unit, but tries to replace software.amazon.test." +
+                    "Component1 using scope AppScope.",
+            )
+        }
+    }
 }

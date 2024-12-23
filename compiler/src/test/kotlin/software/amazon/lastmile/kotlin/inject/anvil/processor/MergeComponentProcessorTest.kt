@@ -15,7 +15,9 @@ import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import software.amazon.lastmile.kotlin.inject.anvil.compile
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.inner
+import software.amazon.lastmile.kotlin.inject.anvil.kotlinInjectComponent
 import software.amazon.lastmile.kotlin.inject.anvil.mergedComponent
+import software.amazon.lastmile.kotlin.inject.anvil.newComponent
 
 class MergeComponentProcessorTest {
 
@@ -463,9 +465,235 @@ class MergeComponentProcessorTest {
         }
     }
 
+    @Test
+    fun `contributed bindings can be replaced from another contributed binding`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(AppScope::class)
+            class Impl : Base
+
+            @Inject
+            @ContributesBinding(AppScope::class, replaces = [Impl::class])
+            class Fake : Base
+
+            @MergeComponent(AppScope::class)
+            abstract class ComponentInterface {
+                abstract val base: Base
+            }
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            val implValue = component::class.java.methods
+                .single { it.name == "getBase" }
+                .invoke(component)
+
+            assertThat(impl.isInstance(implValue)).isFalse()
+            assertThat(fake.isInstance(implValue)).isTrue()
+        }
+    }
+
+    @Test
+    fun `contributed components can be replaced from another contributed binding`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+
+            interface Base
+
+            @Inject
+            class Impl : Base {
+                @ContributesTo(AppScope::class)
+                interface Component {
+                    @Provides fun provideImpl(impl: Impl): Base = impl                
+                }
+            }
+
+
+            @Inject
+            @ContributesBinding(AppScope::class, replaces = [Impl.Component::class])
+            class Fake : Base
+
+            @MergeComponent(AppScope::class)
+            abstract class ComponentInterface {
+                abstract val base: Base
+            }
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            val implValue = component::class.java.methods
+                .single { it.name == "getBase" }
+                .invoke(component)
+
+            assertThat(impl.isInstance(implValue)).isFalse()
+            assertThat(fake.isInstance(implValue)).isTrue()
+        }
+    }
+
+    @Test
+    fun `contributed bindings can be replaced from another contributed component`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(AppScope::class)
+            class Impl : Base
+
+            @Inject
+            class Fake : Base {
+                @ContributesTo(AppScope::class, replaces = [Impl::class])
+                interface Component {
+                    @Provides fun provideFake(fake: Fake): Base = fake                
+                }
+            }
+
+            @MergeComponent(AppScope::class)
+            abstract class ComponentInterface {
+                abstract val base: Base
+            }
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            val implValue = component::class.java.methods
+                .single { it.name == "getBase" }
+                .invoke(component)
+
+            assertThat(impl.isInstance(implValue)).isFalse()
+            assertThat(fake.isInstance(implValue)).isTrue()
+        }
+    }
+
+    @Test
+    fun `contributed components can be replaced from another contributed component`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+
+            interface Base
+
+            @Inject
+            class Impl : Base {
+                @ContributesTo(AppScope::class)
+                interface Component {
+                    @Provides fun provideImpl(impl: Impl): Base = impl                
+                }
+            }
+
+
+            @Inject
+            class Fake : Base {
+                @ContributesTo(AppScope::class, replaces = [Impl.Component::class])
+                interface Component {
+                    @Provides fun provideFake(fake: Fake): Base = fake                
+                }
+            }
+
+            @MergeComponent(AppScope::class)
+            abstract class ComponentInterface {
+                abstract val base: Base
+            }
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            val implValue = component::class.java.methods
+                .single { it.name == "getBase" }
+                .invoke(component)
+
+            assertThat(impl.isInstance(implValue)).isFalse()
+            assertThat(fake.isInstance(implValue)).isTrue()
+        }
+    }
+
+    @Test
+    fun `a replaced binding cannot replace other bindings`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Provides
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+            import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(AppScope::class)
+            class Impl : Base
+
+            @Inject
+            @ContributesBinding(AppScope::class, replaces = [Impl::class])
+            class Fake : Base
+
+            @ContributesTo(AppScope::class, replaces = [Fake::class])
+            interface SomeInterface
+
+            @MergeComponent(AppScope::class)
+            abstract class ComponentInterface {
+                abstract val base: Base
+            }
+            """,
+        ) {
+            val component = componentInterface.kotlinInjectComponent.newComponent<Any>()
+
+            val implValue = component::class.java.methods
+                .single { it.name == "getBase" }
+                .invoke(component)
+
+            assertThat(impl.isInstance(implValue)).isTrue()
+            assertThat(fake.isInstance(implValue)).isFalse()
+        }
+    }
+
     private val JvmCompilationResult.stringComponent: Class<*>
         get() = classLoader.loadClass("software.amazon.test.StringComponent")
 
     private val JvmCompilationResult.implComponent: Class<*>
         get() = classLoader.loadClass("software.amazon.test.Impl\$Component")
+
+    private val JvmCompilationResult.impl: Class<*>
+        get() = classLoader.loadClass("software.amazon.test.Impl")
+
+    private val JvmCompilationResult.fake: Class<*>
+        get() = classLoader.loadClass("software.amazon.test.Fake")
 }

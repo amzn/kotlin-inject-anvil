@@ -314,6 +314,66 @@ class ContributesBindingProcessorTest {
         }
     }
 
+    @Test
+    fun `a replaced binding must use the same scope`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(AppScope::class)
+            class Impl : Base
+
+            @Inject
+            @ContributesBinding(Unit::class, replaces = [Impl::class])
+            class Fake : Base
+            """,
+            exitCode = COMPILATION_ERROR,
+        ) {
+            assertThat(messages).contains(
+                "Replaced types must use the same scope. software.amazon.test.Fake " +
+                    "uses scope Unit, but tries to replace software.amazon.test.Impl using " +
+                    "scope AppScope.",
+            )
+        }
+    }
+
+    @Test
+    fun `a replaced binding must use the same scope without named parameter`() {
+        compile(
+            """
+            package software.amazon.test
+                            
+            import me.tatarka.inject.annotations.Inject
+            import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(AppScope::class)
+            class Impl : Base
+
+            @Inject
+            @ContributesBinding(Unit::class, Unit::class, false, [Impl::class])
+            class Fake : Base
+            """,
+            exitCode = COMPILATION_ERROR,
+        ) {
+            assertThat(messages).contains(
+                "Replaced types must use the same scope. software.amazon.test.Fake " +
+                    "uses scope Unit, but tries to replace software.amazon.test.Impl using " +
+                    "scope AppScope.",
+            )
+        }
+    }
+
     private val JvmCompilationResult.base: Class<*>
         get() = classLoader.loadClass("software.amazon.test.Base")
 
