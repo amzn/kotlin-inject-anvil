@@ -141,7 +141,7 @@ abstract class AppComponent {
 #### `@ContributesSubcomponent`
 
 The `@ContributesSubcomponent` annotation allows you to define a subcomponent in any Gradle module,
-but the final `@Component` will be generated when the parent component is merged.
+but the final `@Subcomponent` will be generated when the parent component is merged.
 ```kotlin
 @ContributesSubcomponent(LoggedInScope::class)
 @SingleIn(LoggedInScope::class)
