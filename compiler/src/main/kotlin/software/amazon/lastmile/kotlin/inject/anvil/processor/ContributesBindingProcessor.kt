@@ -1,5 +1,8 @@
 package software.amazon.lastmile.kotlin.inject.anvil.processor
 
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.getConstructors
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -8,14 +11,18 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
+import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
@@ -75,6 +82,7 @@ internal class ContributesBindingProcessor(
         return emptyList()
     }
 
+    @OptIn(KspExperimental::class)
     @Suppress("LongMethod")
     private fun generateComponentInterface(clazz: KSClassDeclaration) {
         val componentClassName = ClassName(LOOKUP_PACKAGE, clazz.safeClassName)
@@ -118,17 +126,18 @@ internal class ContributesBindingProcessor(
                                     }
                                 }
                                 .apply {
-                                    val parameterName = clazz.innerClassNames().decapitalize()
-                                    addParameter(
-                                        ParameterSpec
-                                            .builder(
-                                                name = parameterName,
-                                                type = clazz.toClassName(),
-                                            )
-                                            .build(),
-                                    )
+                                    val hasAssistedInjection = clazz.getConstructors()
+                                        .any { constructor ->
+                                            constructor.parameters.any {
+                                                it.isAnnotationPresent(Assisted::class)
+                                            }
+                                        }
 
-                                    addStatement("return $parameterName")
+                                    if (hasAssistedInjection) {
+                                        createAssistedProvider(clazz)
+                                    } else {
+                                        createNormalProvider(clazz)
+                                    }
                                 }
                                 .returns(function.bindingMethodReturnType)
                                 .build()
@@ -139,6 +148,54 @@ internal class ContributesBindingProcessor(
             .build()
 
         fileSpec.writeTo(codeGenerator, aggregating = false)
+    }
+
+    private fun FunSpec.Builder.createNormalProvider(clazz: KSClassDeclaration) {
+        val parameterName = clazz.innerClassNames().decapitalize()
+        addParameter(
+            ParameterSpec
+                .builder(
+                    name = parameterName,
+                    type = clazz.toClassName(),
+                )
+                .build(),
+        )
+
+        addStatement("return $parameterName")
+    }
+
+    @OptIn(KspExperimental::class)
+    private fun FunSpec.Builder.createAssistedProvider(clazz: KSClassDeclaration) {
+        val constructor = clazz.getConstructors().firstOrNull { constructor ->
+            constructor.parameters.any { it.isAnnotationPresent(Assisted::class) }
+        } ?: throw IllegalArgumentException(
+            "No constructor with @Assisted found in ${clazz.simpleName.asString()}",
+        )
+        val constructorParameters = constructor.parameters
+        val realAssistedFactory: LambdaTypeName = createRealAssistedFactory(
+            constructorParameters = constructorParameters,
+            clazz = clazz,
+        )
+        val assistedParameters = constructorParameters
+            .filter { it.isAnnotationPresent(Assisted::class) }
+        assistedParameters
+            .forEach {
+                addParameter(
+                    ParameterSpec.builder(it.requireName(), it.type.resolve().toTypeName())
+                        .addAnnotation(Assisted::class)
+                        .build(),
+                )
+            }
+        addParameter(
+            ParameterSpec.builder(
+                name = "realFactory",
+                type = realAssistedFactory,
+            ).build(),
+        )
+        addStatement(
+            "return realFactory(${assistedParameters.joinToString { it.requireName() }})",
+            clazz.toClassName(),
+        )
     }
 
     private fun checkNoDuplicateBoundTypes(
@@ -211,6 +268,24 @@ internal class ContributesBindingProcessor(
             }
         }
     }
+
+    /**
+     * Create a lambda to represent the assisted factory provided by kotlin-inject.
+     *
+     * When marking an injectable class with @Assisted, kotlin-inject will generate a binding in
+     * lambda form to inject something that can create an instance.
+     */
+    @OptIn(KspExperimental::class)
+    private fun createRealAssistedFactory(
+        constructorParameters: List<KSValueParameter>,
+        clazz: KSClassDeclaration,
+    ): LambdaTypeName = LambdaTypeName.get(
+        parameters = constructorParameters
+            .filter { it.isAnnotationPresent(Assisted::class) }
+            .map { it.type.toTypeName() }
+            .toTypedArray(),
+        returnType = clazz.toClassName(),
+    )
 
     private inner class GeneratedFunction(
         boundType: KSType,
