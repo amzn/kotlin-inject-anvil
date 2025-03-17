@@ -1,5 +1,7 @@
 package software.amazon.lastmile.kotlin.inject.anvil.processor
 
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -14,6 +16,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
+import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
 import me.tatarka.inject.annotations.Assisted
@@ -24,6 +27,7 @@ import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
 import software.amazon.lastmile.kotlin.inject.anvil.addOriginAnnotation
 import software.amazon.lastmile.kotlin.inject.anvil.argumentOfTypeAt
+import software.amazon.lastmile.kotlin.inject.anvil.decapitalize
 import software.amazon.lastmile.kotlin.inject.anvil.requireQualifiedName
 import kotlin.reflect.KClass
 
@@ -75,6 +79,7 @@ internal class ContributesBindingProcessor(
         return emptyList()
     }
 
+    @OptIn(KspExperimental::class)
     @Suppress("LongMethod")
     private fun generateComponentInterface(clazz: KSClassDeclaration) {
         val componentClassName = ClassName(LOOKUP_PACKAGE, clazz.safeClassName)
@@ -118,24 +123,42 @@ internal class ContributesBindingProcessor(
                                     }
                                 }
                                 .apply {
-                                    val constructor = clazz.primaryConstructor!!
-                                    val parameters = constructor.parameters.map { param ->
-                                        val paramName = param.name!!.asString()
-                                        val paramType = param.type.resolve().toClassName()
-                                        val assisted = param.annotations.any {
-                                            it.shortName.asString() == "Assisted"
+                                    val hasAssistedInjection = clazz
+                                        .primaryConstructor
+                                        ?.parameters
+                                        ?.any { it.isAnnotationPresent(Assisted::class) } ?: false
+
+                                    if (hasAssistedInjection.not()) {
+                                        val parameterName = clazz.innerClassNames().decapitalize()
+                                        addParameter(
+                                            ParameterSpec
+                                                .builder(
+                                                    name = parameterName,
+                                                    type = clazz.toClassName(),
+                                                )
+                                                .build(),
+                                        )
+
+                                        addStatement("return $parameterName")
+                                    } else {
+                                        val constructor = clazz.primaryConstructor!!
+                                        val parameters = constructor.parameters.map { param ->
+                                            val paramName = param.name!!.asString()
+                                            val paramType = param.type.resolve().toClassName()
+                                            val paramAnnotations =
+                                                param.annotations.map { annotation ->
+                                                    annotation.toAnnotationSpec()
+                                                }
+                                            ParameterSpec.builder(paramName, paramType).apply {
+                                                paramAnnotations.forEach { addAnnotation(it) }
+                                            }.build()
                                         }
-                                        ParameterSpec.builder(paramName, paramType).apply {
-                                            if (assisted) {
-                                                addAnnotation(Assisted::class)
-                                            }
-                                        }.build()
+                                        parameters.forEach { addParameter(it) }
+                                        addStatement(
+                                            "return %T(${parameters.joinToString { it.name }})",
+                                            clazz.toClassName(),
+                                        )
                                     }
-                                    parameters.forEach { addParameter(it) }
-                                    addStatement(
-                                        "return %T(${parameters.joinToString { it.name }})",
-                                        clazz.toClassName(),
-                                    )
                                 }
                                 .returns(function.bindingMethodReturnType)
                                 .build()

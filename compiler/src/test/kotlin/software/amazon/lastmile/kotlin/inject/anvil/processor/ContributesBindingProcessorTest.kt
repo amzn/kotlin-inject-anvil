@@ -8,6 +8,7 @@ import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
 import com.tschuchort.compiletesting.JvmCompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.COMPILATION_ERROR
+import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -371,6 +372,39 @@ class ContributesBindingProcessorTest {
                     "uses scope Unit, but tries to replace software.amazon.test.Impl using " +
                     "scope AppScope.",
             )
+        }
+    }
+
+    @Test
+    fun `an assisted parameter should be generated in the component`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import me.tatarka.inject.annotations.Assisted
+            import me.tatarka.inject.annotations.Inject
+
+            interface Base
+
+            @Inject
+            @ContributesBinding(Unit::class)
+            class Impl(@Assisted val foo: String) : Base 
+            """,
+        ) {
+            val generatedComponent = impl.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent.origin).isEqualTo(impl)
+
+            val method = generatedComponent.declaredMethods.single()
+            assertThat(method.name).isEqualTo("provideImplBase")
+
+            val parameter = method.parameters.single()
+            assertThat(parameter.type).isEqualTo(String::class.java)
+            assertThat(parameter).isAnnotatedWith(Assisted::class)
+            assertThat(method.returnType).isEqualTo(base)
+            assertThat(method).isAnnotatedWith(Provides::class)
         }
     }
 
