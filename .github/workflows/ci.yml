@@ -10,8 +10,15 @@ on:
 
 jobs:
   test:
+    name: assemble-and-test (KSP2=${{ matrix.use-ksp2 }})
+
     runs-on: macos-latest
     timeout-minutes: 25
+
+    strategy:
+      fail-fast: false
+      matrix:
+        use-ksp2: [ true, false ]
 
     steps:
       - uses: actions/checkout@v4
@@ -22,13 +29,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Test on Mac
-        run: ./gradlew assemble test --stacktrace --show-version --continue
+        run: ./gradlew assemble test --stacktrace --show-version --continue -Pksp.useKSP2=${{ matrix.use-ksp2 }}
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
-          name: test-results
+          name: test-results-${{ matrix.use-ksp2 }}
           path: ./**/build/reports/tests/
 
   binary-compatibility-check:

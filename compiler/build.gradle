@@ -38,6 +38,14 @@ dependencies {
     testImplementation libs.kotlin.inject.ksp
 
     // Bump transitive dependency.
+    testImplementation libs.kotlin.compiler.embeddable
     testImplementation libs.ksp
     testImplementation libs.ksp.embeddable
+}
+
+tasks.named("test").configure {
+    def useKsp2 = providers.gradleProperty('ksp.useKSP2')
+    doFirst {
+        println "Using ksp2 = ${useKsp2.get()}"
+    }
 }

@@ -1,6 +1,17 @@
 plugins {
     id 'software.amazon.lib.jvm'
     id 'java-test-fixtures'
+    alias(libs.plugins.build.config)
+}
+
+buildConfig {
+    useKotlinOutput {
+        internalVisibility = false
+    }
+
+    sourceSets.named("testFixtures") {
+        buildConfigField(boolean, 'USE_KSP_2', providers.gradleProperty('ksp.useKSP2').get().toBoolean())
+    }
 }
 
 dependencies {
