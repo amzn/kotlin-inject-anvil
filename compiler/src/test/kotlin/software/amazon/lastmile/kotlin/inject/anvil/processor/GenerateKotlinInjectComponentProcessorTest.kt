@@ -41,7 +41,7 @@ class GenerateKotlinInjectComponentProcessorTest {
             @Inject
             @SingleIn(AppScope::class)
             @ContributesBinding(AppScope::class)
-            class Impl(string: String) : Base
+            class Impl(val string: String) : Base
 
             @ContributesTo(AppScope::class)
             interface StringComponent {
@@ -86,7 +86,7 @@ class GenerateKotlinInjectComponentProcessorTest {
             @Inject
             @SingleIn(AppScope::class)
             @ContributesBinding(AppScope::class)
-            class Impl(string: String) : Base
+            class Impl(val string: String) : Base
 
             @ContributesTo(AppScope::class)
             interface StringComponent {
@@ -133,7 +133,7 @@ class GenerateKotlinInjectComponentProcessorTest {
             @Inject
             @SingleIn(AppScope::class)
             @ContributesBinding(AppScope::class)
-            class Impl(string: String) : Base
+            class Impl(val string: String) : Base
 
             @ContributesTo(AppScope::class)
             interface StringComponent {
@@ -312,7 +312,7 @@ class GenerateKotlinInjectComponentProcessorTest {
 
             @Inject
             @ContributesBinding(AppScope::class)
-            class Impl(string: String) : Base
+            class Impl(val string: String) : Base
 
             @ContributesTo(AppScope::class)
             interface StringComponent {
@@ -356,7 +356,7 @@ class GenerateKotlinInjectComponentProcessorTest {
             @Inject
             @SingleIn(AppScope::class)
             @ContributesBinding(AppScope::class)
-            class Impl(string: String) : Base
+            class Impl(val string: String) : Base
             
             @ContributesTo(AppScope::class)
             interface ImplComponent {
@@ -395,7 +395,7 @@ class GenerateKotlinInjectComponentProcessorTest {
             @Inject
             @SingleIn(AppScope::class)
             @ContributesBinding(AppScope::class)
-            class Impl(string: String) : Base
+            class Impl(val string: String) : Base
 
             @ContributesTo(AppScope::class)
             interface StringComponent {

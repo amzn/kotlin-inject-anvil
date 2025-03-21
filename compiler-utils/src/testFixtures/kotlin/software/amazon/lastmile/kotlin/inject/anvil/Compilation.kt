@@ -17,6 +17,7 @@ import com.tschuchort.compiletesting.configureKsp
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.JvmTarget
+import software.amazon.lastmile.kotlin.inject.anvil.compiler_utils.TestFixturesBuildConfig.USE_KSP_2
 import java.io.File
 import java.io.OutputStream
 import java.nio.file.Files
@@ -39,7 +40,7 @@ class Compilation internal constructor(
     fun configureKotlinInjectAnvilProcessor(
         processorOptions: Map<String, String> = emptyMap(),
         symbolProcessorProviders: Set<SymbolProcessorProvider> = emptySet(),
-        useKsp2: Boolean = true,
+        useKsp2: Boolean = USE_KSP_2,
     ): Compilation = apply {
         checkNotCompiled()
         check(!processorsConfigured) { "Processor should not be configured twice." }
@@ -151,7 +152,7 @@ fun compile(
     workingDir: File? = null,
     previousCompilationResult: JvmCompilationResult? = null,
     moduleName: String? = null,
-    useKsp2: Boolean = true,
+    useKsp2: Boolean = USE_KSP_2,
     multiplatform: Boolean = false,
     options: Map<String, String> = emptyMap(),
     exitCode: KotlinCompilation.ExitCode = KotlinCompilation.ExitCode.OK,
