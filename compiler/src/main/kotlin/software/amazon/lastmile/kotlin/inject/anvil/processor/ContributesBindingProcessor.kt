@@ -1,5 +1,7 @@
 package software.amazon.lastmile.kotlin.inject.anvil.processor
 
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -14,8 +16,10 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
+import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
+import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
@@ -75,6 +79,7 @@ internal class ContributesBindingProcessor(
         return emptyList()
     }
 
+    @OptIn(KspExperimental::class)
     @Suppress("LongMethod")
     private fun generateComponentInterface(clazz: KSClassDeclaration) {
         val componentClassName = ClassName(LOOKUP_PACKAGE, clazz.safeClassName)
@@ -118,17 +123,42 @@ internal class ContributesBindingProcessor(
                                     }
                                 }
                                 .apply {
-                                    val parameterName = clazz.innerClassNames().decapitalize()
-                                    addParameter(
-                                        ParameterSpec
-                                            .builder(
-                                                name = parameterName,
-                                                type = clazz.toClassName(),
-                                            )
-                                            .build(),
-                                    )
+                                    val hasAssistedInjection = clazz
+                                        .primaryConstructor
+                                        ?.parameters
+                                        ?.any { it.isAnnotationPresent(Assisted::class) } ?: false
 
-                                    addStatement("return $parameterName")
+                                    if (hasAssistedInjection.not()) {
+                                        val parameterName = clazz.innerClassNames().decapitalize()
+                                        addParameter(
+                                            ParameterSpec
+                                                .builder(
+                                                    name = parameterName,
+                                                    type = clazz.toClassName(),
+                                                )
+                                                .build(),
+                                        )
+
+                                        addStatement("return $parameterName")
+                                    } else {
+                                        val constructor = clazz.primaryConstructor!!
+                                        val parameters = constructor.parameters.map { param ->
+                                            val paramName = param.name!!.asString()
+                                            val paramType = param.type.resolve().toClassName()
+                                            val paramAnnotations =
+                                                param.annotations.map { annotation ->
+                                                    annotation.toAnnotationSpec()
+                                                }
+                                            ParameterSpec.builder(paramName, paramType).apply {
+                                                paramAnnotations.forEach { addAnnotation(it) }
+                                            }.build()
+                                        }
+                                        parameters.forEach { addParameter(it) }
+                                        addStatement(
+                                            "return %T(${parameters.joinToString { it.name }})",
+                                            clazz.toClassName(),
+                                        )
+                                    }
                                 }
                                 .returns(function.bindingMethodReturnType)
                                 .build()
