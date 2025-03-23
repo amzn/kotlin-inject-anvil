@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
+import software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesAssistedFactoryProcessor
 import software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesBindingProcessor
 import software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesSubcomponentFactoryProcessor
 import software.amazon.lastmile.kotlin.inject.anvil.processor.ContributesSubcomponentProcessor
@@ -39,6 +40,12 @@ class KotlinInjectExtensionSymbolProcessorProvider : SymbolProcessorProvider {
             )
             addIfEnabled(
                 ContributesBindingProcessor(
+                    codeGenerator = environment.codeGenerator,
+                    logger = environment.logger,
+                ),
+            )
+            addIfEnabled(
+                ContributesAssistedFactoryProcessor(
                     codeGenerator = environment.codeGenerator,
                     logger = environment.logger,
                 ),

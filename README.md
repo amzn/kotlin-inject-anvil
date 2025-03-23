@@ -156,6 +156,37 @@ interface RendererComponent {
 For more details on usage of the annotation and behavior
 [see the documentation](runtime/src/commonMain/kotlin/software/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent.kt).
 
+#### `@ContributesAssistedFactory`
+
+The `@ContributesAssistedFactory` annotation allows you to bind a factory interface to a dependency 
+that uses [assisted injection from kotlin-inject](https://github.com/evant/kotlin-inject?tab=readme-ov-file#function-support--assisted-injection).
+
+```kotlin
+interface MovieRepository {
+    fun get(): Movie
+
+    interface Factory {
+        fun create(id: String): MovieRepository
+    }
+}
+
+@Inject
+@ContributesAssistedFactory(
+    scope = AppScope::class,
+    assistedFactory = MovieRepository.Factory::class,
+)
+class RealMovieRepository(
+    @Assisted private val id: String,
+) : MovieRepository
+
+@MergeComponent(AppScope::class)
+@SingleIn(AppScope::class)
+abstract class AppComponent {
+    // Will bind the factory to the component.
+    abstract val movieFactory: MovieRepository.Factory
+}
+```
+
 ### Merging
 
 With `kotlin-inject`, components are defined similar to the one below in order to instantiate your
