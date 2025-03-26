@@ -18,7 +18,6 @@ import software.amazon.lastmile.kotlin.inject.anvil.Compilation
 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 import software.amazon.lastmile.kotlin.inject.anvil.compile
-import software.amazon.lastmile.kotlin.inject.anvil.compiler_utils.TestFixturesBuildConfig.USE_KSP_2
 import software.amazon.lastmile.kotlin.inject.anvil.componentInterface
 import software.amazon.lastmile.kotlin.inject.anvil.newComponent
 import software.amazon.lastmile.kotlin.inject.anvil.origin
@@ -391,13 +390,6 @@ class ContributesSubcomponentProcessorTest {
     @Test
     @Suppress("ForbiddenComment")
     fun `the factory function accepts parameters with qualifier annotations and the parameters are bound in the component`() {
-        // TODO: https://github.com/evant/kotlin-inject/issues/447
-        val argumentLine = if (USE_KSP_2) {
-            "intArg: @ForScope(LoggedInScope::class) Int,"
-        } else {
-            "@ForScope(LoggedInScope::class) intArg: Int,"
-        }
-
         compile(
             """
             package software.amazon.test
@@ -427,7 +419,7 @@ class ContributesSubcomponentProcessorTest {
                 interface Parent {
                     fun otherComponent(
                         @QualifiedString stringArg: String, 
-                        $argumentLine
+                        @ForScope(LoggedInScope::class) intArg: Int,
                     ): OtherComponent 
                 }
             }
