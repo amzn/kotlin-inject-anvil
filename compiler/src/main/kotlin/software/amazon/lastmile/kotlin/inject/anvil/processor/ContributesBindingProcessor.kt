@@ -10,6 +10,7 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.ClassName
@@ -23,6 +24,7 @@ import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 import me.tatarka.inject.annotations.Assisted
+import me.tatarka.inject.annotations.Inject
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
@@ -126,15 +128,21 @@ internal class ContributesBindingProcessor(
                                     }
                                 }
                                 .apply {
-                                    val hasAssistedInjection = clazz.getConstructors()
-                                        .any { constructor ->
-                                            constructor.parameters.any {
-                                                it.isAnnotationPresent(Assisted::class)
+                                    val injectConstructor = clazz.getConstructors()
+                                        .singleOrNull { it.isAnnotationPresent(Inject::class) }
+                                        ?: clazz.primaryConstructor
+                                            ?.takeIf {
+                                                it.isAnnotationPresent(Inject::class) ||
+                                                    clazz.isAnnotationPresent(Inject::class)
                                             }
-                                        }
+
+                                    val hasAssistedInjection = injectConstructor
+                                        ?.parameters
+                                        ?.any { it.isAnnotationPresent(Assisted::class) }
+                                        ?: false
 
                                     if (hasAssistedInjection) {
-                                        createAssistedProvider(clazz)
+                                        createAssistedProvider(clazz, injectConstructor)
                                     } else {
                                         createNormalProvider(clazz)
                                     }
@@ -165,27 +173,29 @@ internal class ContributesBindingProcessor(
     }
 
     @OptIn(KspExperimental::class)
-    private fun FunSpec.Builder.createAssistedProvider(clazz: KSClassDeclaration) {
-        val constructor = clazz.getConstructors().firstOrNull { constructor ->
-            constructor.parameters.any { it.isAnnotationPresent(Assisted::class) }
-        } ?: throw IllegalArgumentException(
-            "No constructor with @Assisted found in ${clazz.simpleName.asString()}",
-        )
-        val constructorParameters = constructor.parameters
-        val realAssistedFactory: LambdaTypeName = createRealAssistedFactory(
-            constructorParameters = constructorParameters,
-            clazz = clazz,
-        )
-        val assistedParameters = constructorParameters
+    private fun FunSpec.Builder.createAssistedProvider(
+        clazz: KSClassDeclaration,
+        injectConstructor: KSFunctionDeclaration,
+    ) {
+        val assistedParameters = injectConstructor.parameters
             .filter { it.isAnnotationPresent(Assisted::class) }
-        assistedParameters
-            .forEach {
-                addParameter(
-                    ParameterSpec.builder(it.requireName(), it.type.resolve().toTypeName())
-                        .addAnnotation(Assisted::class)
-                        .build(),
-                )
-            }
+
+        val realAssistedFactory: LambdaTypeName = createRealAssistedFactory(
+            clazz = clazz,
+            assistedParameters = assistedParameters,
+        )
+        addParameters(
+            assistedParameters.map { parameter ->
+                ParameterSpec
+                    .builder(
+                        name = parameter.requireName(),
+                        type = parameter.type.resolve().toTypeName(),
+                    )
+                    .addAnnotation(Assisted::class)
+                    .build()
+            },
+        )
+
         addParameter(
             ParameterSpec.builder(
                 name = "realFactory",
@@ -197,6 +207,22 @@ internal class ContributesBindingProcessor(
             clazz.toClassName(),
         )
     }
+
+    /**
+     * Create a lambda to represent the assisted factory provided by kotlin-inject.
+     *
+     * When marking an injectable class with @Assisted, kotlin-inject will generate a binding in
+     * lambda form to inject something that can create an instance.
+     */
+    private fun createRealAssistedFactory(
+        clazz: KSClassDeclaration,
+        assistedParameters: List<KSValueParameter>,
+    ): LambdaTypeName = LambdaTypeName.get(
+        parameters = assistedParameters
+            .map { it.type.toTypeName() }
+            .toTypedArray(),
+        returnType = clazz.toClassName(),
+    )
 
     private fun checkNoDuplicateBoundTypes(
         clazz: KSClassDeclaration,
@@ -268,24 +294,6 @@ internal class ContributesBindingProcessor(
             }
         }
     }
-
-    /**
-     * Create a lambda to represent the assisted factory provided by kotlin-inject.
-     *
-     * When marking an injectable class with @Assisted, kotlin-inject will generate a binding in
-     * lambda form to inject something that can create an instance.
-     */
-    @OptIn(KspExperimental::class)
-    private fun createRealAssistedFactory(
-        constructorParameters: List<KSValueParameter>,
-        clazz: KSClassDeclaration,
-    ): LambdaTypeName = LambdaTypeName.get(
-        parameters = constructorParameters
-            .filter { it.isAnnotationPresent(Assisted::class) }
-            .map { it.type.toTypeName() }
-            .toTypedArray(),
-        returnType = clazz.toClassName(),
-    )
 
     private inner class GeneratedFunction(
         boundType: KSType,

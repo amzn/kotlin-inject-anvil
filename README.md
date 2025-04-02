@@ -120,51 +120,6 @@ class RealAuthenticator : Authenticator
 `@ContributesBinding` will generate a provider method similar to the one above and automatically
 add it to the final component.
 
-###### Assisted injection
-
-When using the `@ContributesBinding` annotation in combination with the kotlin-inject `@Assisted` 
-annotation. A factory method will be generated binding the return type to be the bound type of the 
-class annotated with `@ContributesBinding` in the final component.
-
-```kotlin
-interface Base {
-    fun create(): String
-}
-
-@Inject
-@ContributesBinding(AppScope::class)
-class RealBase(
-    @Assisted val foo: String,
-): Base {
-    override fun create(): String = "${foo}bar"
-}
-
-@Inject
-class BaseViewModel(val factory: (String) -> Base) {
-    fun create(foo: String) {
-        val base: Base = factory(foo)
-    }
-}
-```
-
-Note that the above example binds the factory as a lambda because of how [assisted injection](https://github.com/evant/kotlin-inject?tab=readme-ov-file#function-support--assisted-injection) 
-works with kotlin-inject. If you wish to have a more strongly typed interface bound to create the 
-dependency, then you can create an interface and bind that in a default implementation.
-
-```kotlin
-interface BaseFactory {
-    fun create(foo: String): Base
-}
-
-@Inject
-@ContributesBinding(AppScope::class)
-class RealBaseFactory(
-    private val realFactory: (String) -> RealBase,
-) : BaseFactory {
-    override fun create(foo: String): Base = realFactory(foo)
-}
-```
-
 ##### Multi-bindings
 
 `@ContributesBinding` supports `Set` multi-bindings via its `multibinding` parameter.
@@ -200,6 +155,53 @@ interface RendererComponent {
 ```
 For more details on usage of the annotation and behavior
 [see the documentation](runtime/src/commonMain/kotlin/software/amazon/lastmile/kotlin/inject/anvil/ContributesSubcomponent.kt).
+
+#### Assisted injection
+
+When using the `@ContributesBinding` annotation in combination with the kotlin-inject `@Assisted`
+annotation, then you can inject the factory lambda with the base type as return type:
+```kotlin
+interface Authenticator {
+    fun authenticate(): Result
+}
+
+@Inject
+@ContributesBinding(AppScope::class)
+class RealAuthenticator(
+    @Assisted val credentials: Credentials,
+): Authenticator {
+    override fun authenticate(): Result = sendAuthenticationRequest(credentials)
+}
+
+@Inject
+class LoginScreen(val authenticatorFactory: (Credentials) -> Authenticator) {
+    fun login(credentials: Credentials) {
+        // Note that this lambda returns Authenticator and NOT RealAuthenticator.
+        val authenticator = authenticatorFactory(credentials)
+        authenticator.authenticate()
+    }
+}
+```
+
+Note that the above example binds the factory as a lambda because of how
+[assisted injection](https://github.com/evant/kotlin-inject?tab=readme-ov-file#function-support--assisted-injection)
+works with kotlin-inject. If you wish to have a more strongly typed interface bound to create the
+dependency, then you can create an explicit Factory interface and bind that in a default
+implementation. A common pattern looks like this:
+
+```kotlin
+interface AuthenticatorFactory {
+    fun create(credentials: Credentials): Authenticator
+}
+
+@Inject
+@ContributesBinding(AppScope::class)
+class RealAuthenticatorFactory(
+    private val realAuthenticatorFactory: (Credentials) -> RealAuthenticator,
+) : AuthenticatorFactory {
+    override fun create(credentials: Credentials): Authenticator = realAuthenticatorFactory(credentials)
+}
+```
 
 ### Merging
 
