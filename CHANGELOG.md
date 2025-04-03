@@ -17,6 +17,17 @@
 ### Other Notes & Contributions
 
 
+## [0.1.3] - 2025-04-02
+
+### Added
+
+* Added support for assisted injection with `@ContributesBinding`, see #92.
+
+### Changed
+
+* Upgraded Kotlin to `2.1.20` and KSP to `2.1.20-1.0.32`.
+
+
 ## [0.1.2] - 2024-12-23
 
 ### Added
@@ -113,7 +124,8 @@
 
 - Initial release.
 
-[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.1.2...HEAD
+[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.1.3...HEAD
+[0.1.3]: https://github.com/square/anvil/releases/tag/0.1.3
 [0.1.2]: https://github.com/square/anvil/releases/tag/0.1.2
 [0.1.1]: https://github.com/square/anvil/releases/tag/0.1.1
 [0.1.0]: https://github.com/square/anvil/releases/tag/0.1.0
