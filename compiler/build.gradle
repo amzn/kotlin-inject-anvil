@@ -46,6 +46,6 @@ dependencies {
 tasks.named("test").configure {
     def useKsp2 = providers.gradleProperty('ksp.useKSP2')
     doFirst {
-        println "Using ksp2 = ${useKsp2.get()}"
+        logger.lifecycle("Using ksp2 = ${useKsp2.get()}")
     }
 }
