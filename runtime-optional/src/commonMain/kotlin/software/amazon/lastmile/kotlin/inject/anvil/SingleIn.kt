@@ -1,7 +1,6 @@
 package software.amazon.lastmile.kotlin.inject.anvil
 
 import me.tatarka.inject.annotations.Scope
-import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
@@ -23,7 +22,6 @@ import kotlin.reflect.KClass
  * therefore the same annotation can be used for Dagger 2 and Anvil.
  */
 @Scope
-@Retention(RUNTIME)
 @Target(CLASS, FUNCTION, PROPERTY_GETTER, VALUE_PARAMETER)
 public expect annotation class SingleIn(
     /**

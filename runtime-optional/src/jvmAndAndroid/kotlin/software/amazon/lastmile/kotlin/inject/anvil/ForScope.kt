@@ -1,6 +1,5 @@
 package software.amazon.lastmile.kotlin.inject.anvil
 
-import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.annotation.AnnotationTarget.PROPERTY
@@ -28,7 +27,6 @@ import kotlin.reflect.KClass
  */
 @me.tatarka.inject.annotations.Qualifier
 @javax.inject.Qualifier
-@Retention(RUNTIME)
 @Target(CLASS, FUNCTION, PROPERTY_GETTER, VALUE_PARAMETER, TYPE, PROPERTY)
 public actual annotation class ForScope(
     /**
