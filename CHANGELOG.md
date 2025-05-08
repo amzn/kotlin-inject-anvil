@@ -17,6 +17,14 @@
 ### Other Notes & Contributions
 
 
+## [0.1.5] - 2025-05-08
+
+### Changed
+
+* Upgraded KSP to `2.1.20-2.0.1`.
+* Removed redundant `@Retention` annotation to avoid https://youtrack.jetbrains.com/issue/KT-41082/, see #112.
+
+
 ## [0.1.4] - 2025-04-16
 
 ### Changed
@@ -131,7 +139,8 @@
 
 - Initial release.
 
-[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.1.4...HEAD
+[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.1.5...HEAD
+[0.1.5]: https://github.com/square/anvil/releases/tag/0.1.5
 [0.1.4]: https://github.com/square/anvil/releases/tag/0.1.4
 [0.1.3]: https://github.com/square/anvil/releases/tag/0.1.3
 [0.1.2]: https://github.com/square/anvil/releases/tag/0.1.2
