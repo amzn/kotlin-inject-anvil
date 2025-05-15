@@ -20,6 +20,7 @@ import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
+import com.squareup.kotlinpoet.ksp.toAnnotationSpec
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
@@ -27,6 +28,7 @@ import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
+import me.tatarka.inject.annotations.Qualifier
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
@@ -123,6 +125,12 @@ internal class ContributesBindingProcessor(
                                 )
                                 .addAnnotation(Provides::class)
                                 .apply {
+                                    clazz.annotations
+                                        .filter { it.isQualifier() }
+                                        .forEach { qualifier ->
+                                            addAnnotation(qualifier.toAnnotationSpec())
+                                        }
+
                                     if (function.multibinding) {
                                         addAnnotation(IntoSet::class)
                                     }
@@ -157,6 +165,12 @@ internal class ContributesBindingProcessor(
 
         fileSpec.writeTo(codeGenerator, aggregating = false)
     }
+
+    @OptIn(KspExperimental::class)
+    private fun KSAnnotation.isQualifier(): Boolean =
+        annotationType.resolve().declaration.isAnnotationPresent(
+            Qualifier::class,
+        )
 
     private fun FunSpec.Builder.createNormalProvider(clazz: KSClassDeclaration) {
         val parameterName = clazz.innerClassNames().decapitalize()
