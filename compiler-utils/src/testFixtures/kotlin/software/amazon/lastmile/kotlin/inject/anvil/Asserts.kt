@@ -23,6 +23,12 @@ fun Assert<AnnotatedElement>.isAnnotatedWith(annotation: KClass<*>) {
     }.contains(annotation)
 }
 
+fun Assert<AnnotatedElement>.isAnnotatedWith(annotation: String) {
+    transform { element ->
+        element.annotations.map { it.annotationClass.qualifiedName }
+    }.contains(annotation)
+}
+
 fun Assert<AnnotatedElement>.isNotAnnotatedWith(annotation: KClass<*>) {
     transform { element ->
         element.annotations.map { it.annotationClass }

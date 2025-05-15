@@ -481,6 +481,77 @@ class ContributesBindingProcessorTest {
         }
     }
 
+    @Test
+    fun `qualifier applied to class annotated with ContributesBinding is carried over to generated code`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Qualifier
+
+            interface Base
+
+            @Qualifier
+            annotation class MyQualifier
+
+            @MyQualifier
+            @ContributesBinding(Unit::class)
+            @Inject
+            class Impl() : Base
+            """,
+        ) {
+            val generatedComponent = impl.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent.origin).isEqualTo(impl)
+
+            val method = generatedComponent.declaredMethods.single()
+            assertThat(method.name).isEqualTo("provideImplBase")
+            assertThat(method.parameters.single().type).isEqualTo(impl)
+            assertThat(method.returnType).isEqualTo(base)
+            assertThat(method).isAnnotatedWith(Provides::class)
+            assertThat(method).isAnnotatedWith("software.amazon.test.MyQualifier")
+        }
+    }
+
+    @Test
+    fun `qualifier applied to class annotated with multibinding contribution is carried over to generated code`() {
+        compile(
+            """
+            package software.amazon.test
+    
+            import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+            import me.tatarka.inject.annotations.Inject
+            import me.tatarka.inject.annotations.Qualifier
+
+            interface Base
+
+            @Qualifier
+            annotation class MyQualifier
+
+            @Inject
+            @MyQualifier
+            @ContributesBinding(Unit::class, multibinding = true)
+            class Impl : Base 
+            """,
+        ) {
+            val generatedComponent = impl.generatedComponent
+
+            assertThat(generatedComponent.packageName).isEqualTo(LOOKUP_PACKAGE)
+            assertThat(generatedComponent.origin).isEqualTo(impl)
+
+            val method = generatedComponent.declaredMethods.single()
+            assertThat(method.name).isEqualTo("provideImplBaseMultibinding")
+            assertThat(method.parameters.single().type).isEqualTo(impl)
+            assertThat(method.returnType).isEqualTo(base)
+            assertThat(method).isAnnotatedWith(Provides::class)
+            assertThat(method).isAnnotatedWith(IntoSet::class)
+            assertThat(method).isAnnotatedWith("software.amazon.test.MyQualifier")
+        }
+    }
+
     private val JvmCompilationResult.base: Class<*>
         get() = classLoader.loadClass("software.amazon.test.Base")
 
