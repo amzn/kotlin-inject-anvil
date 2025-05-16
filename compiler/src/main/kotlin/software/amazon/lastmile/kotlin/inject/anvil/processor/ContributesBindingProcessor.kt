@@ -28,7 +28,6 @@ import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 import me.tatarka.inject.annotations.IntoSet
 import me.tatarka.inject.annotations.Provides
-import me.tatarka.inject.annotations.Qualifier
 import software.amazon.lastmile.kotlin.inject.anvil.ContextAware
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.LOOKUP_PACKAGE
@@ -126,7 +125,7 @@ internal class ContributesBindingProcessor(
                                 .addAnnotation(Provides::class)
                                 .apply {
                                     clazz.annotations
-                                        .filter { it.isQualifier() }
+                                        .filter { it.isKotlinInjectQualifierAnnotation() }
                                         .forEach { qualifier ->
                                             addAnnotation(qualifier.toAnnotationSpec())
                                         }
@@ -165,12 +164,6 @@ internal class ContributesBindingProcessor(
 
         fileSpec.writeTo(codeGenerator, aggregating = false)
     }
-
-    @OptIn(KspExperimental::class)
-    private fun KSAnnotation.isQualifier(): Boolean =
-        annotationType.resolve().declaration.isAnnotationPresent(
-            Qualifier::class,
-        )
 
     private fun FunSpec.Builder.createNormalProvider(clazz: KSClassDeclaration) {
         val parameterName = clazz.innerClassNames().decapitalize()
