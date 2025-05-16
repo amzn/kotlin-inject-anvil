@@ -126,7 +126,7 @@ internal class ContributesBindingProcessor(
                                 .addAnnotation(Provides::class)
                                 .apply {
                                     clazz.annotations
-                                        .filter { it.isQualifier() }
+                                        .filter { it.isKotlinInjectQualifierAnnotation() }
                                         .forEach { qualifier ->
                                             addAnnotation(qualifier.toAnnotationSpec())
                                         }
@@ -165,12 +165,6 @@ internal class ContributesBindingProcessor(
 
         fileSpec.writeTo(codeGenerator, aggregating = false)
     }
-
-    @OptIn(KspExperimental::class)
-    private fun KSAnnotation.isQualifier(): Boolean =
-        annotationType.resolve().declaration.isAnnotationPresent(
-            Qualifier::class,
-        )
 
     private fun FunSpec.Builder.createNormalProvider(clazz: KSClassDeclaration) {
         val parameterName = clazz.innerClassNames().decapitalize()
