@@ -1,7 +1,9 @@
 package software.amazon.lastmile.kotlin.inject.anvil
 
+import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.getVisibility
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.ClassKind
@@ -29,7 +31,6 @@ interface ContextAware {
     val logger: KSPLogger
 
     private val scopeFqName get() = Scope::class.requireQualifiedName()
-    private val qualifierFqName get() = Qualifier::class.requireQualifiedName()
     private val componentFqName get() = Component::class.requireQualifiedName()
 
     fun <T : Any> requireNotNull(
@@ -112,10 +113,9 @@ interface ContextAware {
         return annotationType.resolve().isKotlinInjectQualifierAnnotation()
     }
 
+    @OptIn(KspExperimental::class)
     private fun KSType.isKotlinInjectQualifierAnnotation(): Boolean {
-        return declaration.annotations.any {
-            it.annotationType.resolve().declaration.requireQualifiedName() == qualifierFqName
-        }
+        return declaration.isAnnotationPresent(Qualifier::class)
     }
 
     fun KSAnnotation.isKotlinInjectComponentAnnotation(): Boolean {
