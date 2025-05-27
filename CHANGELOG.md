@@ -17,6 +17,15 @@
 ### Other Notes & Contributions
 
 
+## [0.1.6] - 2025-05-27
+
+### Changed
+
+* Upgraded Kotlin to `2.1.21`.
+* Carry over qualifiers for `@ContributesBinding`, see #113.
+* Snapshots are now published to the Central Portal Snapshots repository at https://central.sonatype.com/repository/maven-snapshots/.
+
+
 ## [0.1.5] - 2025-05-08
 
 ### Changed
@@ -139,7 +148,8 @@
 
 - Initial release.
 
-[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.1.5...HEAD
+[Unreleased]: https://github.com/amzn/kotlin-inject-anvil/compare/0.1.6...HEAD
+[0.1.6]: https://github.com/square/anvil/releases/tag/0.1.6
 [0.1.5]: https://github.com/square/anvil/releases/tag/0.1.5
 [0.1.4]: https://github.com/square/anvil/releases/tag/0.1.4
 [0.1.3]: https://github.com/square/anvil/releases/tag/0.1.3
