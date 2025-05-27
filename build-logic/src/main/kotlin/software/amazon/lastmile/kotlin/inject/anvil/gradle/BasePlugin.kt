@@ -17,7 +17,7 @@ internal class BasePlugin : Plugin<Project> {
             google()
             gradlePluginPortal()
             maven {
-                it.url = URI.create("https://oss.sonatype.org/content/repositories/snapshots/")
+                it.url = URI.create("https://central.sonatype.com/repository/maven-snapshots/")
             }
         }
     }

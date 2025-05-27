@@ -63,7 +63,7 @@ For details how to setup KSP itself for multiplatform projects, see the
 To import snapshot builds use following repository:
 ```groovy
 maven {
-    url = 'https://aws.oss.sonatype.org/content/repositories/snapshots/'
+    url = 'https://central.sonatype.com/repository/maven-snapshots/'
 }
 ```
 
