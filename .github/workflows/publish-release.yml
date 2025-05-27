@@ -9,7 +9,7 @@ jobs:
   publish-release:
     runs-on: macos-latest
     if: github.repository == 'amzn/kotlin-inject-anvil'
-    timeout-minutes: 25
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v4
